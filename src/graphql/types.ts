@@ -1,7 +1,7 @@
 export enum Role {
-  Admin='ADMIN',
-  User='USER',
-  TestUser='TESTUSER'
+  Admin = 'ADMIN',
+  User = 'USER',
+  TestUser = 'TESTUSER'
 }
 
 export interface User {
@@ -16,8 +16,7 @@ export interface User {
 export interface Item {
   id: string
   title: string
-  reserved: boolean
-  reservedBy?: string
+  reservedBy?: User
   description?: string
   url?: string
 }
@@ -59,12 +58,26 @@ interface LoginArguments {
 
 export interface Mutations {
   addItem: (parent: RootType, args: ItemCreationArguments) => Promise<Item>
-  addUser: (parent: RootType, args: UserCreationArguments) => Promise<User| undefined>
+  addUser: (parent: RootType, args: UserCreationArguments) => Promise<User | undefined>
   login: (parent: RootType, args: LoginArguments) => Promise<Token>
+  editUser: (parent: RootType, args: EditUserInput) => Promise<User | null>
+  editItem: (parent: RootType, args: EditItemInput) => Promise<Item | null>
+  deleteItem: (parent: RootType, args: EntityIdResolverArgs) => Promise<boolean>
+  deleteUser: (parent: RootType, args: EntityIdResolverArgs) => Promise<boolean>
 }
 
-export interface User {
-  addItem: (parent: RootType, args: ItemCreationArguments) => Promise<Item>
-  addUser: (parent: RootType, args: UserCreationArguments) => Promise<User| undefined>
-  login: (parent: RootType, args: LoginArguments) => Promise<Token>
+export interface EditUserInput {
+  id: string
+  name?: string
+  username?: string
+  role?: Role
+  password?: string
+}
+
+export interface EditItemInput {
+  id: string
+  title?: string
+  reservedBy?: User
+  description?: string
+  url?: string
 }

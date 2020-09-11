@@ -17,7 +17,8 @@
         "warn", { "argsIgnorePattern": "^_" }
     ],
      "@typescript-eslint/no-explicit-any": 1,
-    "no-case-declarations": 0
+    "no-case-declarations": 0,
+    "quotes": ["warn", "single"]
   },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {

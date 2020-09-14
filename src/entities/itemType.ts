@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, InputType, ObjectType } from 'type-graphql';
 import { User } from './userType';
 
 @ObjectType({ description: 'An object representing a giftlist item' })
@@ -11,6 +11,21 @@ export class Item {
 
   @Field(_type => User, { nullable: true })
   reservedBy?: User;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field({ nullable: true })
+  url?: string;
+}
+
+@InputType()
+export class ItemInput {
+  @Field()
+  title!: string;
+
+  @Field({ nullable: true })
+  reservedBy?: string;
 
   @Field({ nullable: true })
   description?: string;

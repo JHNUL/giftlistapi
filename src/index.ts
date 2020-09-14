@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import 'dotenv/config';
+import { ApolloServer } from 'apollo-server';
+import { buildSchema } from 'type-graphql';
 import { connect } from 'mongoose';
-import UserModel from './models/UserModel';
-import { UserInput } from './entities/userType';
-import { Role } from './entities/role.enum';
+import { ItemResolver } from './resolvers/itemResolver';
 
 const dbUri = process.env.MONGODB_URI as string;
 
@@ -13,16 +13,15 @@ const init = async (): Promise<void> => {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    console.log('connected to mongodb, cleaning..');
-    const userInput: UserInput = {
-      name: 'foo',
-      username: 'fooer',
-      password: 'pfsdpsdfds',
-      items: [],
-      role: Role.TestUser
-    };
-    const user = new UserModel(userInput);
-    await user.save();
+    console.log('connected to mongodb..');
+    const schema = await buildSchema({
+      resolvers: [ItemResolver],
+      emitSchemaFile: './schema.sdl'
+    });
+    const server = new ApolloServer({ schema });
+    server.listen()
+      .then(({ url }) => console.log(`Playground available at ${url}`))
+      .catch(e => console.error(e));
   } catch (error) {
     console.error(error);
   }

@@ -10,11 +10,11 @@ export class Item {
   title!: string;
 
   @Field(_type => User, { nullable: true })
-  reservedBy!: User;
+  reservedBy?: User;
 
   @Field({ nullable: true })
-  description!: string;
+  description?: string;
 
   @Field({ nullable: true })
-  url!: string;
+  url?: string;
 }

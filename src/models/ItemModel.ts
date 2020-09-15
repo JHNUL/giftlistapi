@@ -1,4 +1,13 @@
 import mongoose from 'mongoose';
+import { Item } from '../graphql/typedefs';
+
+export interface IItemModel extends mongoose.Document {
+  title: string
+  reservedBy?: mongoose.Schema.Types.ObjectId
+  description?: string
+  url?: string
+  toJSON: () => Item
+}
 
 const ItemSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -7,4 +16,8 @@ const ItemSchema = new mongoose.Schema({
   url: { type: String },
 });
 
-export default mongoose.model('Item', ItemSchema);
+ItemSchema.set('toJSON', { virtuals: true });
+
+const Item = mongoose.model<IItemModel>('Item', ItemSchema);
+
+export { Item };

@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import { ApolloServer } from 'apollo-server';
-import { buildSchema } from 'type-graphql';
 import { connect } from 'mongoose';
+import { typeDefs } from './graphql/typedefs';
 import { ItemResolver } from './resolvers/itemResolver';
 
 const dbUri = process.env.MONGODB_URI as string;
@@ -14,11 +14,7 @@ const init = async (): Promise<void> => {
       useUnifiedTopology: true
     });
     console.log('connected to mongodb..');
-    const schema = await buildSchema({
-      resolvers: [ItemResolver],
-      emitSchemaFile: './schema.sdl'
-    });
-    const server = new ApolloServer({ schema });
+    const server = new ApolloServer({ typeDefs, resolvers: ItemResolver });
     server.listen()
       .then(({ url }) => console.log(`Playground available at ${url}`))
       .catch(e => console.error(e));

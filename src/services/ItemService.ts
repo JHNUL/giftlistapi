@@ -1,15 +1,28 @@
-import { Item, ItemInput } from '../entities/itemType';
-import ItemModel from '../models/ItemModel';
+import mongoose from 'mongoose';
+import { Service } from 'typedi';
+import { Item } from '../graphql/typedefs';
+import { IItemModel } from '../models/ItemModel';
 
-export class ItemService {
+interface BaseService<T> {
+  findById: (id: string) => Promise<T | undefined>,
+  findAll: () => Promise<T[]>
+}
 
-  async findById(id: string): Promise<Item|null> {
-    return Promise.resolve(null);
+@Service()
+export class ItemService implements BaseService<Item> {
+
+  constructor(private itemRepository: mongoose.Model<IItemModel>) { }
+
+  async findById(id: string): Promise<Item | undefined> {
+    const res = await this.itemRepository.findById(id);
+    return res?.toJSON();
   }
-  async addNewItem(itemInput: ItemInput): Promise<Item|null> {
-    const newItem = new ItemModel(itemInput);
-    const savedItem = await newItem.save();
-    console.log('ItemService.ts line:12 ', savedItem);
-    return Promise.resolve(null);
+
+  async findAll(): Promise<Item[]> {
+    console.log('called?');
+    const res = await this.itemRepository.find({});
+    console.log(res.map(doc => doc.toJSON()));
+    return res.map(doc => doc.toJSON());
   }
+
 }

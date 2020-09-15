@@ -1,29 +1,24 @@
-import { Arg, Mutation, Query, Resolver } from 'type-graphql';
-import { ApolloError } from 'apollo-server';
-
+import { Container } from 'typedi';
+import { Item } from '../graphql/typedefs';
+import { ItemQueries } from '../graphql/queries';
 import { ItemService } from '../services/ItemService';
-import { Item, ItemInput } from '../entities/itemType';
 
-@Resolver(Item)
-class ItemResolver {
-  constructor(private itemService: ItemService) {}
+const itemRepo = Container.get(ItemService);
 
-  @Query(_returns => Item)
-  async item(@Arg('id') id: string): Promise<Item> {
-    const item = await this.itemService.findById(id);
-    if (!item) {
-      throw new Error(`Item with id ${id} not found`);
+const itemQueries: ItemQueries = {
+  Query: {
+    item: async (_root, args): Promise<Item | undefined> => {
+      return await itemRepo.findById(args.id);
+    },
+    allItems: async (): Promise<Item[]> => {
+      console.log('caller resolver?');
+      return await itemRepo.findAll();
     }
-    return item;
   }
+};
 
-  @Mutation(_retuns => Item)
-  async addItem(@Arg('itemInput') itemInput: ItemInput): Promise<Item> {
-    const item = await this.itemService.addNewItem(itemInput);
-    if (!item) {
-      throw new Error('Could not add new item');
-    }
-    return item;
-  }
-}
+const ItemResolver = {
+  ...itemQueries
+};
 
+export { ItemResolver };

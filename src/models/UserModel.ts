@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Role } from '../entities/role.enum';
+import { Role } from '../graphql/typedefs';
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },

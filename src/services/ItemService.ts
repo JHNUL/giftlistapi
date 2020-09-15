@@ -1,7 +1,6 @@
-import mongoose from 'mongoose';
 import { Service } from 'typedi';
-import { Item } from '../graphql/typedefs';
-import { IItemModel } from '../models/ItemModel';
+import { Item, ItemInput } from '../graphql/typedefs';
+import { ItemRepository } from '../repositories/ItemRepository';
 
 interface BaseService<T> {
   findById: (id: string) => Promise<T | undefined>,
@@ -11,18 +10,21 @@ interface BaseService<T> {
 @Service()
 export class ItemService implements BaseService<Item> {
 
-  constructor(private itemRepository: mongoose.Model<IItemModel>) { }
+  constructor(private itemRepository: ItemRepository) {}
 
   async findById(id: string): Promise<Item | undefined> {
     const res = await this.itemRepository.findById(id);
     return res?.toJSON();
   }
 
-  async findAll(): Promise<Item[]> {
-    console.log('called?');
-    const res = await this.itemRepository.find({});
-    console.log(res.map(doc => doc.toJSON()));
+  async findAll(reserved?: boolean): Promise<Item[]> {
+    const res = await this.itemRepository.findAll(reserved);
     return res.map(doc => doc.toJSON());
+  }
+
+  async insert(itemInput: ItemInput): Promise<Item> {
+    const res = await this.itemRepository.insert(itemInput);
+    return res.toJSON();
   }
 
 }

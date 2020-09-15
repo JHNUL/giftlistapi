@@ -18,6 +18,6 @@ const ItemSchema = new mongoose.Schema({
 
 ItemSchema.set('toJSON', { virtuals: true });
 
-const Item = mongoose.model<IItemModel>('Item', ItemSchema);
+const ItemModel = mongoose.model<IItemModel>('Item', ItemSchema);
 
-export { Item };
+export { ItemModel };

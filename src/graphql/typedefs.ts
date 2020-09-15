@@ -24,9 +24,11 @@ export interface Item {
 }
 
 export interface ItemInput {
-  title: string,
-  description?: string,
-  url?: string,
+  itemInput: {
+    title: string,
+    description?: string,
+    url?: string,
+  }
 }
 
 export enum Role {

@@ -1,16 +1,15 @@
-import { gql } from 'apollo-server';
-import { ItemInput, Item, UserInput, User } from './typedefs';
+import { gql, IResolvers } from 'apollo-server';
+import { User, Item, ItemInput } from './typedefs';
 
-export interface ItemMutations {
-  addItem: (itemInput: ItemInput) => Promise<Item>
-}
+type RootType = | Item | User;
 
-export interface UserMutations {
-  addUser: (userInput: UserInput) => Promise<User | null>
+export interface ItemMutations extends IResolvers {
+  Mutation: {
+    addItem: (parent: RootType, args: ItemInput) => Promise<Item>
+  }
 }
 
 export const mutations = gql`
 type Mutation {
-  addItem(itemInput: ItemInput): Item!
-  addUser(userInput: UserInput): User
+  addItem(itemInput: ItemInput!): Item!
 }`;

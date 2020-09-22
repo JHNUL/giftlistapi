@@ -1,23 +1,35 @@
 import { Container } from 'typedi';
-import { User } from '../graphql/typedefs';
-import { UserQueries } from '../graphql/queries';
+import { User, UserMutations, UserQueries, Token } from '../graphql/types';
 import { UserService } from '../services/UserService';
-import { UserMutations } from '../graphql/mutations';
 
 const userService = Container.get(UserService);
 
-
-const itemMutations: ItemMutations = {
-  Mutation: {
-    addItem: async (_root, args): Promise<Item> => {
-      return await itemService.insert(args);
+const userQueries: UserQueries = {
+  Query: {
+    user: async (_root, args): Promise<User | undefined> => {
+      return await userService.findById(args.id);
+    },
+    allUsers: async (_root, _args): Promise<User[]> => {
+      return await userService.findAll();
     }
   }
 };
 
-const ItemResolver = {
-  ...itemQueries,
-  ...itemMutations
+
+const userMutations: UserMutations = {
+  Mutation: {
+    addUser: async (_root, args): Promise<User> => {
+      return await userService.insert(args);
+    },
+    login: async (_root, args): Promise<Token> => {
+      return await userService.login(args);
+    }
+  }
 };
 
-export { ItemResolver };
+const UserResolver = {
+  ...userQueries,
+  ...userMutations
+};
+
+export { UserResolver };

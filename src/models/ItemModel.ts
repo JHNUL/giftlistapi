@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import { Item } from '../graphql/typedefs';
+import { Item } from '../graphql/types';
 
 export interface IItemModel extends mongoose.Document {
   title: string
-  reservedBy?: mongoose.Schema.Types.ObjectId
+  reserved: boolean
   description?: string
   url?: string
   toJSON: () => Item
@@ -11,7 +11,7 @@ export interface IItemModel extends mongoose.Document {
 
 const ItemSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  reservedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  reserved: { type: Boolean, default: false },
   description: { type: String },
   url: { type: String },
 });

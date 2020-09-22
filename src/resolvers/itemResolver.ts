@@ -1,8 +1,6 @@
 import { Container } from 'typedi';
-import { Item } from '../graphql/typedefs';
-import { ItemQueries } from '../graphql/queries';
+import { Item, ItemMutations, ItemQueries } from '../graphql/types';
 import { ItemService } from '../services/ItemService';
-import { ItemMutations } from '../graphql/mutations';
 
 const itemService = Container.get(ItemService);
 
@@ -22,6 +20,12 @@ const itemMutations: ItemMutations = {
   Mutation: {
     addItem: async (_root, args): Promise<Item> => {
       return await itemService.insert(args);
+    },
+    reserveItem: async (_root, args): Promise<boolean> => {
+      return await itemService.reserveItem(args);
+    },
+    releaseItem: async (_root, args): Promise<boolean> => {
+      return await itemService.releaseItem(args);
     }
   }
 };

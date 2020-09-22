@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Service } from 'typedi';
-import { ItemInput } from '../graphql/typedefs';
+import { ItemInput } from '../graphql/types';
 import { IItemModel, ItemModel } from '../models/ItemModel';
 
 @Service()
@@ -13,7 +13,7 @@ export class ItemRepository {
 
   async findAll(reserved?: boolean): Promise<IItemModel[]> {
     const findConditions = typeof reserved === 'boolean'
-      ? reserved ? { 'reservedBy': { $exists: true } } : { 'reservedBy': { $exists: false } }
+      ? { reserved }
       : {};
     return await ItemModel.find(findConditions);
   }

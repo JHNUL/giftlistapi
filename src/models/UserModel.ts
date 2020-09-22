@@ -1,5 +1,14 @@
 import mongoose from 'mongoose';
-import { Role } from '../entities/role.enum';
+import { Role, User } from '../graphql/types';
+
+export interface IUserModel extends mongoose.Document {
+  name: string
+  username: string
+  password: string
+  role: Role
+  items?: Array<mongoose.Schema.Types.ObjectId>
+  toJSON: () => User
+}
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -9,4 +18,8 @@ const UserSchema = new mongoose.Schema({
   items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }]
 });
 
-export default mongoose.model('User', UserSchema);
+UserSchema.set('toJSON', { virtuals: true });
+
+const UserModel = mongoose.model<IUserModel>('User', UserSchema);
+
+export { UserModel };

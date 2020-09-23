@@ -6,7 +6,8 @@
   "scripts": {
     "start:dev": "ts-node-dev src/index.ts",
     "tsc": "tsc",
-    "lint": "eslint --ext .ts ./src"
+    "lint": "eslint --ext .ts ./src",
+    "test": "jest --runInBand --detectOpenHandles --colors --verbose"
   },
   "author": "juhanir",
   "license": "ISC",
@@ -20,6 +21,9 @@
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",
     "eslint": "^7.8.1",
+    "jest": "^26.4.2",
+    "jest-junit": "^11.1.0",
+    "ts-jest": "^26.4.0",
     "ts-node-dev": "^1.0.0-pre.62",
     "typescript": "^4.0.2"
   },

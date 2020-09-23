@@ -14,11 +14,16 @@ type User {
   id: ID!
   name: String!
   username: String!
-  password: String!
   items: [Item!]!
+  role: Role
+  password: String
 }
 type Token {
   value: String!
+}
+input CreatePasswordInput {
+  id: ID!
+  password: String!
 }
 input LoginInput {
   username: String!
@@ -32,7 +37,6 @@ input ItemInput {
 input UserInput {
   name: String!
   username: String!
-  password: String!
   role: Role!
 }
 input ReserveItemInput {

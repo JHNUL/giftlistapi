@@ -7,4 +7,5 @@ type Mutation {
   reserveItem(reserveItemInput: ReserveItemInput!): Boolean
   releaseItem(releaseItemInput: ReleaseItemInput!): Boolean
   login(loginInput: LoginInput!): Token
+  createPassword(createPasswordInput: CreatePasswordInput!): Token
 }`;

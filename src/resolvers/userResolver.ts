@@ -11,6 +11,9 @@ const userQueries: UserQueries = {
     },
     allUsers: async (_root, _args): Promise<User[]> => {
       return await userService.findAll();
+    },
+    me: async (_root, args): Promise<User | undefined> => {
+      return await userService.findByName(args.username);
     }
   }
 };
@@ -23,6 +26,9 @@ const userMutations: UserMutations = {
     },
     login: async (_root, args): Promise<Token> => {
       return await userService.login(args);
+    },
+    createPassword: async (_root, args): Promise<Token> => {
+      return await userService.createPassword(args);
     }
   }
 };

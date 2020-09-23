@@ -10,12 +10,6 @@ export interface ItemMutations extends IResolvers {
   }
 }
 
-export interface UserMutations extends IResolvers {
-  Mutation: {
-    addUser: (parent: RootType, args: UserInput) => Promise<User | undefined>
-    login: (parent: RootType, args: LoginInput) => Promise<Token>
-  }
-}
 
 export interface ItemQueries extends IResolvers {
   Query: {
@@ -28,11 +22,24 @@ export interface UserQueries extends IResolvers {
   Query: {
     user: (parent: RootType, args: EntityIdArgs) => Promise<User | undefined>
     allUsers: (parent: RootType, args: AnyArgs) => Promise<User[]>
+    me: (parent: RootType, args: UsernameArgs) => Promise<User | undefined>
+  }
+}
+
+export interface UserMutations extends IResolvers {
+  Mutation: {
+    addUser: (parent: RootType, args: UserInput) => Promise<User | undefined>
+    login: (parent: RootType, args: LoginInput) => Promise<Token>
+    createPassword: (parent: RootType, args: CreatePasswordInput) => Promise<Token>
   }
 }
 
 export type EntityIdArgs = {
   id: string
+};
+
+export type UsernameArgs = {
+  username: string
 };
 
 export type AllItemArgs = {
@@ -46,17 +53,23 @@ export type AnyArgs = {
 export interface User {
   name: string
   username: string
-  password: string
   id: string
   items: Array<Item>
+  password?: string
 }
 
 export interface UserInput {
   userInput: {
     name: string
     username: string
-    password: string
     role: Role
+  }
+}
+
+export interface CreatePasswordInput {
+  createPasswordInput: {
+    id: string
+    password: string
   }
 }
 

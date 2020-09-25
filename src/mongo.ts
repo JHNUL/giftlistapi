@@ -6,7 +6,7 @@ export const connectToDb = async (): Promise<Mongoose> => {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
-    serverSelectionTimeoutMS: 3000
+    serverSelectionTimeoutMS: 5000
   });
 };
 

@@ -12,5 +12,5 @@ export const config = {
   dbUri: mongoUri || '',
   saltRounds: parseInt(process.env.SALT_ROUNDS || '') || 10,
   secret: process.env.SECRET || '',
-  tokenExpiry: process.env.EXPIRY || '',
+  tokenExpiry: process.env.EXPIRY || '10 days',
 };

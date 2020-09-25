@@ -10,7 +10,7 @@ export interface IUserModel extends mongoose.Document {
   toJSON: () => User
 }
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema<User>({
   name: { type: String, required: true, minlength: 4 },
   username: { type: String, required: true, unique: true, minlength: 4 },
   password: { type: String },

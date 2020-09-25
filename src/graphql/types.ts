@@ -54,6 +54,7 @@ export interface User {
   name: string
   username: string
   id: string
+  role: Role
   items: Array<Item>
   password?: string
 }

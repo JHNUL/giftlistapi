@@ -1,9 +1,10 @@
 import { ApolloServer } from 'apollo-server';
 import {
-  ApolloServerTestClient, createTestClient
+  ApolloServerTestClient,
+  createTestClient,
 } from 'apollo-server-testing';
 import { GraphQLFormattedError } from 'graphql';
-import serverConfig from '../src/apollo';
+import getServerConfig from '../src/apollo';
 import { Role, Token } from '../src/graphql/types';
 import { ItemModel } from '../src/models/ItemModel';
 import { UserModel } from '../src/models/UserModel';
@@ -13,7 +14,7 @@ import {
   CREATE_USER,
   GET_USER,
   LOGIN,
-  ME
+  ME,
 } from './util/graphClient';
 import { createUser } from './util/initialisations';
 
@@ -37,7 +38,8 @@ describe('User integration tests', () => {
     await UserModel.deleteMany({});
   });
 
-  const server: ApolloServer = new ApolloServer(serverConfig);
+  const testHeaders = { 'from': 'test' }
+  const server: ApolloServer = new ApolloServer(getServerConfig(testHeaders));
   const testClient: ApolloServerTestClient = createTestClient(server);
 
   it('can add a new user', async () => {

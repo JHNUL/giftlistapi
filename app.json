@@ -3,7 +3,7 @@
     "test": {
       "scripts": {
         "test-setup": "npm install",
-        "test": "npm test"
+        "test": "npm run test:ci"
       }
     }
   }

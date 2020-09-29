@@ -1,22 +1,22 @@
-import serverConfig from '../src/apollo';
 import { ApolloServer } from 'apollo-server';
 import {
-  createTestClient,
   ApolloServerTestClient,
+  createTestClient,
 } from 'apollo-server-testing';
-import {
-  CREATE_ITEM,
-  GET_ITEMS,
-  RESERVE_ITEM,
-  RELEASE_ITEM,
-  GET_ITEM,
-} from './util/graphClient';
-import { connectToDb, closeDbConnection } from '../src/mongo';
+import { GraphQLFormattedError } from 'graphql';
+import getServerConfig from '../src/apollo';
+import { Item, Role } from '../src/graphql/types';
 import { ItemModel } from '../src/models/ItemModel';
 import { UserModel } from '../src/models/UserModel';
-import { Item, Role } from '../src/graphql/types';
+import { closeDbConnection, connectToDb } from '../src/mongo';
+import {
+  CREATE_ITEM,
+  GET_ITEM,
+  GET_ITEMS,
+  RELEASE_ITEM,
+  RESERVE_ITEM,
+} from './util/graphClient';
 import { createItem, createUser } from './util/initialisations';
-import { GraphQLFormattedError } from 'graphql';
 
 describe('Item integration tests', () => {
   beforeAll(async () => {
@@ -38,7 +38,8 @@ describe('Item integration tests', () => {
     await UserModel.deleteMany({});
   });
 
-  const server: ApolloServer = new ApolloServer(serverConfig);
+  const testHeaders = { 'from': 'test' }
+  const server: ApolloServer = new ApolloServer(getServerConfig(testHeaders));
   const testClient: ApolloServerTestClient = createTestClient(server);
 
   it('can add a new item', async () => {

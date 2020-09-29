@@ -4,7 +4,7 @@ import {
   Item,
   ItemInput,
   ReleaseItemInput,
-  ReserveItemInput,
+  ReserveItemInput
 } from '../graphql/types';
 import { ItemRepository } from '../repositories/ItemRepository';
 import { UserRepository } from '../repositories/UserRepository';

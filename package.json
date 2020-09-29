@@ -13,6 +13,7 @@
     "tsc": "tsc",
     "lint": "eslint --ext .ts ./src",
     "prettify": "npx prettier --write ./src ./tests",
+    "test:ci": "NODE_ENV=CI jest --runInBand --colors --verbose",
     "test": "NODE_ENV=test jest --runInBand --detectOpenHandles --colors --verbose"
   },
   "author": "juhanir",

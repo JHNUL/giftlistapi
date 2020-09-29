@@ -1,5 +1,5 @@
 import { Container } from 'typedi';
-import { User, UserMutations, UserQueries, Token } from '../graphql/types';
+import { Token, User, UserMutations, UserQueries } from '../graphql/types';
 import { UserService } from '../services/UserService';
 
 const userService = Container.get(UserService);

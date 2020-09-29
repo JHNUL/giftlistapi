@@ -1,7 +1,16 @@
 import serverConfig from '../src/apollo';
 import { ApolloServer } from 'apollo-server';
-import { createTestClient, ApolloServerTestClient } from 'apollo-server-testing';
-import { CREATE_ITEM, GET_ITEMS, RESERVE_ITEM, RELEASE_ITEM, GET_ITEM } from './util/graphClient';
+import {
+  createTestClient,
+  ApolloServerTestClient,
+} from 'apollo-server-testing';
+import {
+  CREATE_ITEM,
+  GET_ITEMS,
+  RESERVE_ITEM,
+  RELEASE_ITEM,
+  GET_ITEM,
+} from './util/graphClient';
 import { connectToDb, closeDbConnection } from '../src/mongo';
 import { ItemModel } from '../src/models/ItemModel';
 import { UserModel } from '../src/models/UserModel';
@@ -10,7 +19,6 @@ import { createItem, createUser } from './util/initialisations';
 import { GraphQLFormattedError } from 'graphql';
 
 describe('Item integration tests', () => {
-
   beforeAll(async () => {
     try {
       await connectToDb();
@@ -36,7 +44,9 @@ describe('Item integration tests', () => {
   it('can add a new item', async () => {
     await testClient.mutate({
       mutation: CREATE_ITEM,
-      variables: { itemInput: { title: 'foo', description: 'fooer', url: 'bar' } }
+      variables: {
+        itemInput: { title: 'foo', description: 'fooer', url: 'bar' },
+      },
     });
     const { data } = await testClient.query({ query: GET_ITEMS });
     const items = data?.allItems as [Item];
@@ -47,20 +57,22 @@ describe('Item integration tests', () => {
       title: 'foo',
       description: 'fooer',
       url: 'bar',
-      reserved: false
+      reserved: false,
     });
   });
 
   it('can reserve an unreserved item', async () => {
     const { data } = await testClient.mutate({
       mutation: CREATE_ITEM,
-      variables: { itemInput: { title: 'foo', description: 'fooer', url: 'bar' } }
+      variables: {
+        itemInput: { title: 'foo', description: 'fooer', url: 'bar' },
+      },
     });
     const item = data?.addItem as Item;
     const user = await createUser('tester', 'tester', Role.User, 'tester', []);
     const { data: reserveItemData } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: user.id, itemId: item.id } }
+      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
     });
     expect(reserveItemData?.reserveItem).toBe(true);
   });
@@ -69,7 +81,12 @@ describe('Item integration tests', () => {
     const item = await createItem('item', false, 'dididi', 'url');
     const res = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: '5f6e2bf0522a6a1967a78311', itemId: item.id } }
+      variables: {
+        reserveItemInput: {
+          userId: '5f6e2bf0522a6a1967a78311',
+          itemId: item.id,
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -80,7 +97,12 @@ describe('Item integration tests', () => {
     const user = await createUser('tester', 'tester', Role.User, 'tester', []);
     const res = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: user.id, itemId: '5f6e2bf0522a6a1967a78311' } }
+      variables: {
+        reserveItemInput: {
+          userId: user.id,
+          itemId: '5f6e2bf0522a6a1967a78311',
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -92,11 +114,11 @@ describe('Item integration tests', () => {
     const user = await createUser('tester', 'tester', Role.User, 'tester', []);
     await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: user.id, itemId: item.id } }
+      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
     });
     const res = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: user.id, itemId: item.id } }
+      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -108,12 +130,12 @@ describe('Item integration tests', () => {
     const user = await createUser('tester', 'tester', Role.User, 'tester', []);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: user.id, itemId: item.id } }
+      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
     });
     expect(data?.reserveItem).toBe(true);
     const { data: releaseData } = await testClient.mutate({
       mutation: RELEASE_ITEM,
-      variables: { releaseItemInput: {  userId: user.id, itemId: item.id } }
+      variables: { releaseItemInput: { userId: user.id, itemId: item.id } },
     });
     expect(releaseData?.releaseItem).toBe(true);
   });
@@ -121,15 +143,21 @@ describe('Item integration tests', () => {
   it('cannot release a reserved item - does not belong to user', async () => {
     const item = await createItem('item', false, 'dididi', 'url');
     const user = await createUser('tester', 'tester', Role.User, 'tester', []);
-    const user2 = await createUser('tester2', 'tester2', Role.User, 'tester2', []);
+    const user2 = await createUser(
+      'tester2',
+      'tester2',
+      Role.User,
+      'tester2',
+      []
+    );
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: user.id, itemId: item.id } }
+      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
     });
     expect(data?.reserveItem).toBe(true);
     const res = await testClient.mutate({
       mutation: RELEASE_ITEM,
-      variables: { releaseItemInput: {  userId: user2.id, itemId: item.id } }
+      variables: { releaseItemInput: { userId: user2.id, itemId: item.id } },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -140,7 +168,12 @@ describe('Item integration tests', () => {
     const user = await createUser('tester', 'tester', Role.User, 'tester', []);
     const res = await testClient.mutate({
       mutation: RELEASE_ITEM,
-      variables: { releaseItemInput: {  userId: user.id, itemId: '5f6e2bf0522a6a1967a78311' } }
+      variables: {
+        releaseItemInput: {
+          userId: user.id,
+          itemId: '5f6e2bf0522a6a1967a78311',
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -152,12 +185,17 @@ describe('Item integration tests', () => {
     const user = await createUser('tester', 'tester', Role.User, 'tester', []);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: {  userId: user.id, itemId: item.id } }
+      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
     });
     expect(data?.reserveItem).toBe(true);
     const res = await testClient.mutate({
       mutation: RELEASE_ITEM,
-      variables: { releaseItemInput: {  userId: '5f6e2bf0522a6a1967a78311', itemId: item.id } }
+      variables: {
+        releaseItemInput: {
+          userId: '5f6e2bf0522a6a1967a78311',
+          itemId: item.id,
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -170,10 +208,9 @@ describe('Item integration tests', () => {
     await createItem('item3', false);
     const { data } = await testClient.query({
       query: GET_ITEM,
-      variables: { id }
+      variables: { id },
     });
     const item = data?.item as Item;
     expect(item.title).toEqual('item2');
   });
-
 });

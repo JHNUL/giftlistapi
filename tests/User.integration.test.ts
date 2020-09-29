@@ -1,7 +1,16 @@
 import serverConfig from '../src/apollo';
 import { ApolloServer } from 'apollo-server';
-import { createTestClient, ApolloServerTestClient } from 'apollo-server-testing';
-import { CREATE_PASSWORD, CREATE_USER, GET_USER, LOGIN, ME } from './util/graphClient';
+import {
+  createTestClient,
+  ApolloServerTestClient,
+} from 'apollo-server-testing';
+import {
+  CREATE_PASSWORD,
+  CREATE_USER,
+  GET_USER,
+  LOGIN,
+  ME,
+} from './util/graphClient';
 import { connectToDb, closeDbConnection } from '../src/mongo';
 import { ItemModel } from '../src/models/ItemModel';
 import { UserModel } from '../src/models/UserModel';
@@ -10,7 +19,6 @@ import { createUser } from './util/initialisations';
 import { GraphQLFormattedError } from 'graphql';
 
 describe('User integration tests', () => {
-
   beforeAll(async () => {
     try {
       await connectToDb();
@@ -36,7 +44,9 @@ describe('User integration tests', () => {
   it('can add a new user', async () => {
     const { data } = await testClient.mutate({
       mutation: CREATE_USER,
-      variables: { userInput: { name: 'tester', username: 'tester', role: Role.User } }
+      variables: {
+        userInput: { name: 'tester', username: 'tester', role: Role.User },
+      },
     });
     // eslint-disable-next-line
     const { id, ...userWithoutId } = data?.addUser;
@@ -45,7 +55,7 @@ describe('User integration tests', () => {
       username: 'tester',
       role: 'USER',
       items: [],
-      password: null
+      password: null,
     });
   });
 
@@ -55,7 +65,7 @@ describe('User integration tests', () => {
     await createUser('user3', 'user3', Role.User);
     const { data } = await testClient.query({
       query: GET_USER,
-      variables: { id: user.id }
+      variables: { id: user.id },
     });
     // eslint-disable-next-line
     const { id, ...userWithoutId } = data?.user;
@@ -64,14 +74,14 @@ describe('User integration tests', () => {
       username: 'user2',
       role: 'USER',
       items: [],
-      password: null
+      password: null,
     });
   });
 
   it('cannot find user by id', async () => {
     const { data } = await testClient.query({
       query: GET_USER,
-      variables: { id: '5f6e2bf0522a6a1967a78311' }
+      variables: { id: '5f6e2bf0522a6a1967a78311' },
     });
     expect(data?.user).toBeNull();
   });
@@ -82,7 +92,7 @@ describe('User integration tests', () => {
     await createUser('user3', 'user3', Role.User);
     const { data } = await testClient.query({
       query: ME,
-      variables: { username: user.username }
+      variables: { username: user.username },
     });
     // eslint-disable-next-line
     const { id, ...userWithoutId } = data?.me;
@@ -91,14 +101,14 @@ describe('User integration tests', () => {
       username: 'user2',
       role: 'USER',
       items: [],
-      password: null
+      password: null,
     });
   });
 
   it('cannot find user by name', async () => {
     const { data } = await testClient.query({
       query: ME,
-      variables: { username: '___qwerty143123414' }
+      variables: { username: '___qwerty143123414' },
     });
     expect(data?.me).toBeNull();
   });
@@ -107,7 +117,9 @@ describe('User integration tests', () => {
     await createUser('user1', 'user1', Role.User);
     const res = await testClient.mutate({
       mutation: CREATE_USER,
-      variables: { userInput: { name: 'tester', username: 'user1', role: Role.User } }
+      variables: {
+        userInput: { name: 'tester', username: 'user1', role: Role.User },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -118,7 +130,9 @@ describe('User integration tests', () => {
     const user = await createUser('user1', 'user1', Role.User);
     const { data } = await testClient.mutate({
       mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: user.id, password: 'oh_woe_is_me' } }
+      variables: {
+        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
+      },
     });
     const token = data?.createPassword as Token;
     expect(token.value).toBeDefined();
@@ -128,7 +142,12 @@ describe('User integration tests', () => {
   it('cannot create a password for user - user not found', async () => {
     const res = await testClient.mutate({
       mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: '5f6e2bf0522a6a1967a78311', password: 'oh_woe_is_me' } }
+      variables: {
+        createPasswordInput: {
+          id: '5f6e2bf0522a6a1967a78311',
+          password: 'oh_woe_is_me',
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -139,11 +158,18 @@ describe('User integration tests', () => {
     const user = await createUser('user1', 'user1', Role.User);
     await testClient.mutate({
       mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: user.id, password: 'oh_woe_is_me' } }
+      variables: {
+        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
+      },
     });
     const res = await testClient.mutate({
       mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: user.id, password: 'overwrite_password_attempt' } }
+      variables: {
+        createPasswordInput: {
+          id: user.id,
+          password: 'overwrite_password_attempt',
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -154,7 +180,7 @@ describe('User integration tests', () => {
     const user = await createUser('user1', 'user1', Role.User);
     const res = await testClient.mutate({
       mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: user.id, password: 'mini' } }
+      variables: { createPasswordInput: { id: user.id, password: 'mini' } },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -165,11 +191,15 @@ describe('User integration tests', () => {
     const user = await createUser('user1', 'user1', Role.User);
     await testClient.mutate({
       mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: user.id, password: 'oh_woe_is_me' } }
+      variables: {
+        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
+      },
     });
     const { data } = await testClient.mutate({
       mutation: LOGIN,
-      variables: { loginInput: { username: user.username, password: 'oh_woe_is_me' } }
+      variables: {
+        loginInput: { username: user.username, password: 'oh_woe_is_me' },
+      },
     });
     const token = data?.login as Token;
     expect(token.value).toBeDefined();
@@ -179,7 +209,12 @@ describe('User integration tests', () => {
   it('cannot login - no user found with username', async () => {
     const res = await testClient.mutate({
       mutation: LOGIN,
-      variables: { loginInput: { username: 'baby jesus', password: 'a pint and another one' } }
+      variables: {
+        loginInput: {
+          username: 'baby jesus',
+          password: 'a pint and another one',
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -190,11 +225,18 @@ describe('User integration tests', () => {
     const user = await createUser('user1', 'user1', Role.User);
     await testClient.mutate({
       mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: user.id, password: 'oh_woe_is_me' } }
+      variables: {
+        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
+      },
     });
     const res = await testClient.mutate({
       mutation: LOGIN,
-      variables: { loginInput: { username: user.username, password: 'oops I did it again' } }
+      variables: {
+        loginInput: {
+          username: user.username,
+          password: 'oops I did it again',
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
@@ -205,11 +247,15 @@ describe('User integration tests', () => {
     const user = await createUser('user1', 'user1', Role.User);
     const res = await testClient.mutate({
       mutation: LOGIN,
-      variables: { loginInput: { username: user.username, password: 'oops I did it again' } }
+      variables: {
+        loginInput: {
+          username: user.username,
+          password: 'oops I did it again',
+        },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
     expect(errors[0].message).toEqual('Password not correct');
   });
-
 });

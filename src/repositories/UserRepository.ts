@@ -5,7 +5,6 @@ import { IUserModel, UserModel } from '../models/UserModel';
 
 @Service()
 export class UserRepository {
-
   async findById(id: string, populate = true): Promise<IUserModel | null> {
     const objectId = mongoose.Types.ObjectId(id);
     if (populate) {
@@ -21,7 +20,10 @@ export class UserRepository {
     return await UserModel.find({});
   }
 
-  async findByUsername(username: string, populate = true): Promise<IUserModel | null> {
+  async findByUsername(
+    username: string,
+    populate = true
+  ): Promise<IUserModel | null> {
     if (populate) {
       return await UserModel.findOne({ username }).populate('items');
     }
@@ -33,5 +35,4 @@ export class UserRepository {
     const newUser = new UserModel(userInput);
     return await newUser.save();
   }
-
 }

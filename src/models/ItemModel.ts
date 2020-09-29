@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 import { Item } from '../graphql/types';
 
 export interface IItemModel extends mongoose.Document {
-  title: string
-  reserved: boolean
-  description?: string
-  url?: string
-  toJSON: () => Item
+  title: string;
+  reserved: boolean;
+  description?: string;
+  url?: string;
+  toJSON: () => Item;
 }
 
 const ItemSchema = new mongoose.Schema({

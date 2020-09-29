@@ -1,6 +1,11 @@
 import { ApolloError } from 'apollo-server';
 import { Service } from 'typedi';
-import { Item, ItemInput, ReleaseItemInput, ReserveItemInput } from '../graphql/types';
+import {
+  Item,
+  ItemInput,
+  ReleaseItemInput,
+  ReserveItemInput,
+} from '../graphql/types';
 import { ItemRepository } from '../repositories/ItemRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { BaseService } from './types';
@@ -8,8 +13,10 @@ import { objectIdsAreEqual } from './util';
 
 @Service()
 export class ItemService implements BaseService<Item> {
-
-  constructor(private itemRepository: ItemRepository, private userRepository: UserRepository) { }
+  constructor(
+    private itemRepository: ItemRepository,
+    private userRepository: UserRepository
+  ) {}
 
   async findById(id: string): Promise<Item | undefined> {
     const res = await this.itemRepository.findById(id);
@@ -18,7 +25,7 @@ export class ItemService implements BaseService<Item> {
 
   async findAll(reserved?: boolean): Promise<Item[]> {
     const res = await this.itemRepository.findAll(reserved);
-    return res.map(doc => doc.toJSON());
+    return res.map((doc) => doc.toJSON());
   }
 
   async insert(itemInput: ItemInput): Promise<Item> {
@@ -27,8 +34,13 @@ export class ItemService implements BaseService<Item> {
   }
 
   async reserveItem(input: ReserveItemInput): Promise<boolean> {
-    const item = await this.itemRepository.findById(input.reserveItemInput.itemId);
-    const user = await this.userRepository.findById(input.reserveItemInput.userId, false);
+    const item = await this.itemRepository.findById(
+      input.reserveItemInput.itemId
+    );
+    const user = await this.userRepository.findById(
+      input.reserveItemInput.userId,
+      false
+    );
     if (!item || !user) {
       throw new ApolloError('Item or user does not exist');
     }
@@ -42,18 +54,24 @@ export class ItemService implements BaseService<Item> {
   }
 
   async releaseItem(input: ReleaseItemInput): Promise<boolean> {
-    const item = await this.itemRepository.findById(input.releaseItemInput.itemId);
-    const user = await this.userRepository.findById(input.releaseItemInput.userId, false);
+    const item = await this.itemRepository.findById(
+      input.releaseItemInput.itemId
+    );
+    const user = await this.userRepository.findById(
+      input.releaseItemInput.userId,
+      false
+    );
     if (!item || !user) {
       throw new ApolloError('Item or user does not exist');
     }
-    if (!user.items?.find(i => objectIdsAreEqual(i, item._id))) {
-      throw new ApolloError(`User does not have item ${input.releaseItemInput.itemId} reserved`);
+    if (!user.items?.find((i) => objectIdsAreEqual(i, item._id))) {
+      throw new ApolloError(
+        `User does not have item ${input.releaseItemInput.itemId} reserved`
+      );
     }
     item.reserved = false;
-    user.items = user.items.filter(i => !objectIdsAreEqual(i, item._id));
+    user.items = user.items.filter((i) => !objectIdsAreEqual(i, item._id));
     await Promise.all([item.save(), user.save()]);
     return true;
   }
-
 }

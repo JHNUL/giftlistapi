@@ -11,10 +11,9 @@ const itemQueries: ItemQueries = {
     },
     allItems: async (_root, args): Promise<Item[]> => {
       return await itemService.findAll(args.reserved);
-    }
-  }
+    },
+  },
 };
-
 
 const itemMutations: ItemMutations = {
   Mutation: {
@@ -26,13 +25,13 @@ const itemMutations: ItemMutations = {
     },
     releaseItem: async (_root, args): Promise<boolean> => {
       return await itemService.releaseItem(args);
-    }
-  }
+    },
+  },
 };
 
 const ItemResolver = {
   ...itemQueries,
-  ...itemMutations
+  ...itemMutations,
 };
 
 export { ItemResolver };

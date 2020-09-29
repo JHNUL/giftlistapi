@@ -14,10 +14,9 @@ const userQueries: UserQueries = {
     },
     me: async (_root, args): Promise<User | undefined> => {
       return await userService.findByName(args.username);
-    }
-  }
+    },
+  },
 };
-
 
 const userMutations: UserMutations = {
   Mutation: {
@@ -29,13 +28,13 @@ const userMutations: UserMutations = {
     },
     createPassword: async (_root, args): Promise<Token> => {
       return await userService.createPassword(args);
-    }
-  }
+    },
+  },
 };
 
 const UserResolver = {
   ...userQueries,
-  ...userMutations
+  ...userMutations,
 };
 
 export { UserResolver };

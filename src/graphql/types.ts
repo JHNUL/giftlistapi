@@ -1,6 +1,17 @@
 import { IResolvers } from 'apollo-server';
+import mongoose from 'mongoose';
 
-export type RootType = Item | User;
+export type RootType = undefined;
+
+export interface ItemListMutations extends IResolvers {
+  Mutation: {
+    addItemList: (
+      parent: RootType,
+      args: ItemListInput,
+      context: RequestContext
+    ) => Promise<ItemList>;
+  };
+}
 
 export interface ItemMutations extends IResolvers {
   Mutation: {
@@ -8,11 +19,6 @@ export interface ItemMutations extends IResolvers {
     reserveItem: (parent: RootType, args: ReserveItemInput) => Promise<boolean>;
     releaseItem: (parent: RootType, args: ReleaseItemInput) => Promise<boolean>;
   };
-}
-
-export interface RequestContext {
-  id?: string;
-  role?: Role;
 }
 
 export interface ItemQueries extends IResolvers {
@@ -38,11 +44,12 @@ export interface UserMutations extends IResolvers {
   Mutation: {
     addUser: (parent: RootType, args: UserInput) => Promise<User | undefined>;
     login: (parent: RootType, args: LoginInput) => Promise<Token>;
-    createPassword: (
-      parent: RootType,
-      args: CreatePasswordInput
-    ) => Promise<Token>;
   };
+}
+
+export interface RequestContext {
+  id?: string;
+  role?: Role;
 }
 
 export type EntityIdArgs = {
@@ -67,7 +74,8 @@ export interface User {
   id: string;
   role: Role;
   items: Array<Item>;
-  password?: string;
+  itemLists: Array<ItemList>;
+  password: string;
 }
 
 export interface UserInput {
@@ -75,6 +83,7 @@ export interface UserInput {
     name: string;
     username: string;
     role: Role;
+    password: string;
   };
 }
 
@@ -91,6 +100,15 @@ export interface Item {
   reserved: boolean;
   description?: string;
   url?: string;
+}
+
+export interface ItemList {
+  id: string;
+  name: string;
+  identifier: string;
+  items: Array<Item>;
+  created: Date;
+  owner: User;
 }
 
 export interface ItemInput {
@@ -119,6 +137,15 @@ export interface ReleaseItemInput {
   releaseItemInput: {
     userId: string;
     itemId: string;
+  };
+}
+
+export interface ItemListInput {
+  itemListInput: {
+    name: string;
+    identifier: string;
+    owner?: string;
+    created?: Date;
   };
 }
 

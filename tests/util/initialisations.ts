@@ -6,7 +6,7 @@ export const createUser = async (
   name: string,
   username: string,
   role: Role,
-  password?: string,
+  password: string,
   items?: Array<Item>
 ): Promise<User> => {
   const testUser = new UserModel({

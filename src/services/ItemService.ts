@@ -1,4 +1,5 @@
 import { ApolloError } from 'apollo-server';
+import mongoose from 'mongoose';
 import { Service } from 'typedi';
 import {
   Item,
@@ -48,7 +49,8 @@ export class ItemService implements BaseService<Item> {
       throw new ApolloError('Item is already reserved');
     }
     item.reserved = true;
-    user.items = user.items ? [...user.items, item._id] : [item._id];
+    const itemId = item._id as mongoose.Schema.Types.ObjectId;
+    user.items = user.items ? [...user.items, itemId] : [itemId];
     await Promise.all([item.save(), user.save()]);
     return true;
   }

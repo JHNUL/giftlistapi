@@ -8,6 +8,7 @@ import { config, Environment } from './config';
 import { typeDefs } from './graphql/typedefs';
 import { RequestContext } from './graphql/types';
 import { UserModel } from './models/UserModel';
+import { DateResolver } from './resolvers/dateResolver';
 import { ItemResolver } from './resolvers/itemResolver';
 import { UserResolver } from './resolvers/userResolver';
 
@@ -18,7 +19,7 @@ const getServerConfig = (
 ): ApolloServerExpressConfig => {
   return {
     typeDefs,
-    resolvers: [ItemResolver, UserResolver],
+    resolvers: [DateResolver, ItemResolver, UserResolver],
     introspection: true,
     playground: true,
     context: async ({ req }): Promise<RequestContext> => {

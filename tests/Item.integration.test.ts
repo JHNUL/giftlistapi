@@ -70,7 +70,7 @@ describe('Item integration tests', () => {
       },
     });
     const item = data?.addItem as Item;
-    const user = await createUser('tester', 'tester', Role.User, 'tester', []);
+    const user = await createUser('tester', 'tester', Role.User, 'testerer', []);
     const { data: reserveItemData } = await testClient.mutate({
       mutation: RESERVE_ITEM,
       variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
@@ -95,7 +95,7 @@ describe('Item integration tests', () => {
   });
 
   it('cannot reserve non-existing item', async () => {
-    const user = await createUser('tester', 'tester', Role.User, 'tester', []);
+    const user = await createUser('tester', 'tester', Role.User, 'testerer', []);
     const res = await testClient.mutate({
       mutation: RESERVE_ITEM,
       variables: {
@@ -112,7 +112,7 @@ describe('Item integration tests', () => {
 
   it('cannot reserve a reserved item', async () => {
     const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser('tester', 'tester', Role.User, 'tester', []);
+    const user = await createUser('tester', 'tester', Role.User, 'testerer', []);
     await testClient.mutate({
       mutation: RESERVE_ITEM,
       variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
@@ -128,7 +128,7 @@ describe('Item integration tests', () => {
 
   it('can release a reserved item', async () => {
     const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser('tester', 'tester', Role.User, 'tester', []);
+    const user = await createUser('tester', 'tester', Role.User, 'testerer', []);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
       variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
@@ -143,12 +143,12 @@ describe('Item integration tests', () => {
 
   it('cannot release a reserved item - does not belong to user', async () => {
     const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser('tester', 'tester', Role.User, 'tester', []);
+    const user = await createUser('tester', 'tester', Role.User, 'testerer', []);
     const user2 = await createUser(
       'tester2',
       'tester2',
       Role.User,
-      'tester2',
+      'testerer2',
       []
     );
     const { data } = await testClient.mutate({
@@ -166,7 +166,7 @@ describe('Item integration tests', () => {
   });
 
   it('cannot release a reserved item - item does not exist', async () => {
-    const user = await createUser('tester', 'tester', Role.User, 'tester', []);
+    const user = await createUser('tester', 'tester', Role.User, 'testerer', []);
     const res = await testClient.mutate({
       mutation: RELEASE_ITEM,
       variables: {
@@ -183,7 +183,7 @@ describe('Item integration tests', () => {
 
   it('cannot release a reserved item - user does not exist', async () => {
     const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser('tester', 'tester', Role.User, 'tester', []);
+    const user = await createUser('tester', 'tester', Role.User, 'testerer', []);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
       variables: { reserveItemInput: { userId: user.id, itemId: item.id } },

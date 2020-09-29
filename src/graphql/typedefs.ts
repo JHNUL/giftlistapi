@@ -1,6 +1,6 @@
 import { gql } from 'apollo-server';
-import { queries } from './queries';
 import { mutations } from './mutations';
+import { queries } from './queries';
 
 export const typeDefs = gql`
   type Item {

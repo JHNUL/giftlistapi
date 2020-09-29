@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { config } from '../config';
 import { Role, Token } from '../graphql/types';
 

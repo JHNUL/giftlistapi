@@ -1,14 +1,14 @@
-import jwt from 'jsonwebtoken';
 import {
   ApolloServerExpressConfig,
-  AuthenticationError,
+  AuthenticationError
 } from 'apollo-server-express';
-import { ItemResolver } from './resolvers/itemResolver';
-import { UserResolver } from './resolvers/userResolver';
+import jwt from 'jsonwebtoken';
+import { config } from './config';
 import { typeDefs } from './graphql/typedefs';
 import { RequestContext } from './graphql/types';
-import { config } from './config';
 import { UserModel } from './models/UserModel';
+import { ItemResolver } from './resolvers/itemResolver';
+import { UserResolver } from './resolvers/userResolver';
 
 const serverConfig: ApolloServerExpressConfig = {
   typeDefs,

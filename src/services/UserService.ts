@@ -1,13 +1,13 @@
-import { Service } from 'typedi';
-import bcrypt from 'bcrypt';
 import { ApolloError, AuthenticationError } from 'apollo-server';
+import bcrypt from 'bcrypt';
+import { Service } from 'typedi';
 import { config } from '../config';
 import {
-  LoginInput,
-  User,
-  UserInput,
-  Token,
   CreatePasswordInput,
+  LoginInput,
+  Token,
+  User,
+  UserInput
 } from '../graphql/types';
 import { UserRepository } from '../repositories/UserRepository';
 import { BaseService } from './types';

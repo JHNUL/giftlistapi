@@ -1,6 +1,9 @@
-import { AuthenticationError } from 'apollo-server';
 import { Service } from 'typedi';
-import { ItemList, ItemListInput, RequestContext } from '../graphql/types';
+import {
+  ItemList,
+  ItemListInput,
+  RequestContext,
+} from '../graphql/types';
 import { ItemListRepository } from '../repositories/ItemListRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { BaseService } from './types';
@@ -22,14 +25,20 @@ export class ItemListService implements BaseService<ItemList> {
     return res.map((doc) => doc.toJSON());
   }
 
-  async insert(input: ItemListInput, ctx: RequestContext): Promise<ItemList> {
-    if (!ctx.id || !ctx.role) {
-      throw new AuthenticationError('Must be authenticated to add itemlist');
-    }
+  async insert(
+    input: ItemListInput,
+    ctx: RequestContext
+  ): Promise<ItemList | undefined> {
+    const userId = ctx.id as string; // already checked
     const { itemListInput } = input;
     itemListInput.created = new Date();
-    itemListInput.owner = ctx.id;
+    itemListInput.owner = userId;
     const res = await this.itemListRepository.insert(input);
-    return res.toJSON();
+    const itemList = await this.itemListRepository.findById(res?.toJSON().id);
+    const user = await this.userRepository.findById(userId);
+    user?.itemLists.push(itemList?._id);
+    await user?.save();
+    return itemList?.toJSON();
   }
+
 }

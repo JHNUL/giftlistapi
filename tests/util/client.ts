@@ -27,6 +27,25 @@ export const CREATE_USER = gql`
   }
 `;
 
+export const CREATE_ITEMLIST = gql`
+  mutation AddItemList($itemListInput: ItemListInput!) {
+    addItemList(itemListInput: $itemListInput) {
+      id
+      name
+      identifier
+      created
+      items {
+        title
+      }
+      owner {
+        id
+        name
+        username
+      }
+    }
+  }
+`;
+
 export const GET_ITEMS = gql`
   {
     allItems {
@@ -106,5 +125,11 @@ export const LOGIN = gql`
     login(loginInput: $loginInput) {
       value
     }
+  }
+`;
+
+export const ADD_ITEM_TO_LIST = gql`
+  mutation AddItemToList($itemToListInput: ItemToListInput!) {
+    addItemToList(itemToListInput: $itemToListInput)
   }
 `;

@@ -1,5 +1,4 @@
 import { IResolvers } from 'apollo-server';
-import mongoose from 'mongoose';
 
 export type RootType = undefined;
 
@@ -9,15 +8,15 @@ export interface ItemListMutations extends IResolvers {
       parent: RootType,
       args: ItemListInput,
       context: RequestContext
-    ) => Promise<ItemList>;
+    ) => Promise<ItemList | undefined>;
   };
 }
 
 export interface ItemMutations extends IResolvers {
   Mutation: {
-    addItem: (parent: RootType, args: ItemInput) => Promise<Item>;
-    reserveItem: (parent: RootType, args: ReserveItemInput) => Promise<boolean>;
-    releaseItem: (parent: RootType, args: ReleaseItemInput) => Promise<boolean>;
+    addItem: (parent: RootType, args: ItemInput, context: RequestContext) => Promise<Item>;
+    reserveItem: (parent: RootType, args: ReserveItemInput, context: RequestContext) => Promise<boolean>;
+    releaseItem: (parent: RootType, args: ReleaseItemInput, context: RequestContext) => Promise<boolean>;
   };
 }
 
@@ -113,6 +112,7 @@ export interface ItemList {
 
 export interface ItemInput {
   itemInput: {
+    listId: string;
     title: string;
     description?: string;
     url?: string;
@@ -128,8 +128,8 @@ export interface LoginInput {
 
 export interface ReserveItemInput {
   reserveItemInput: {
-    userId: string;
     itemId: string;
+    listId: string;
   };
 }
 
@@ -144,7 +144,7 @@ export interface ItemListInput {
   itemListInput: {
     name: string;
     identifier: string;
-    owner?: string;
+    owner: string;
     created?: Date;
   };
 }

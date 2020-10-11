@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema<User>({
     required: true,
   },
   items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
-  itemLists: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ItemList' }]
+  itemLists: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ItemList' }],
 });
 
 UserSchema.set('toJSON', { virtuals: true });

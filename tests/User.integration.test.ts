@@ -6,11 +6,11 @@ import {
 import { GraphQLFormattedError } from 'graphql';
 import getServerConfig from '../src/apollo';
 import { Role, Token } from '../src/graphql/types';
-import { ItemModel } from '../src/models/ItemModel';
-import { UserModel } from '../src/models/UserModel';
+import { ItemModel } from '../src/models/Item';
+import { UserModel } from '../src/models/User';
 import { closeDbConnection, connectToDb } from '../src/mongo';
-import { CREATE_USER, GET_USER, LOGIN, ME } from './util/graphClient';
-import { createUser } from './util/initialisations';
+import { CREATE_USER, GET_USER, LOGIN, ME } from './util/client';
+import { createUser } from './util/seedUtil';
 
 describe('User integration tests', () => {
   beforeAll(async () => {
@@ -72,7 +72,6 @@ describe('User integration tests', () => {
         },
       },
     });
-    console.log(res);
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
     expect(errors[0].message).toMatch(/Password min length is 8 characters/);

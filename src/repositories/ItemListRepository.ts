@@ -5,9 +5,16 @@ import { IItemListModel, ItemListModel } from '../models/ItemList';
 
 @Service()
 export class ItemListRepository {
-  public async findById(id: string): Promise<IItemListModel | null> {
-    const objectId = mongoose.Types.ObjectId(id);
-    return await ItemListModel.findById(objectId);
+  public async findById(
+    id: string,
+    populate = true
+  ): Promise<IItemListModel | null> {
+    if (!populate) {
+      return await ItemListModel.findById(id);
+    }
+    return await ItemListModel.findById(id)
+      .populate('owner')
+      .populate('items');
   }
 
   public async findAll(): Promise<IItemListModel[]> {
@@ -15,7 +22,10 @@ export class ItemListRepository {
   }
 
   public async insert(input: ItemListInput): Promise<IItemListModel> {
-    const newItemList = new ItemListModel(input.itemListInput);
+    const newItemList = new ItemListModel({
+      ...input.itemListInput,
+      owner: mongoose.Types.ObjectId(input.itemListInput.owner),
+    });
     return await newItemList.save();
   }
 }

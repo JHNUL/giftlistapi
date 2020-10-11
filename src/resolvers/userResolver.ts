@@ -25,7 +25,7 @@ const userMutations: UserMutations = {
     },
     login: async (_root, args): Promise<Token> => {
       return await userService.login(args);
-    }
+    },
   },
 };
 

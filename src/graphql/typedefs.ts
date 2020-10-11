@@ -10,7 +10,7 @@ export const typeDefs = gql`
     identifier: String!
     items: [Item!]!
     owner: User!
-    created: String!
+    created: Date!
   }
   type Item {
     id: ID!
@@ -40,6 +40,7 @@ export const typeDefs = gql`
     password: String!
   }
   input ItemInput {
+    listId: ID!
     title: String!
     description: String
     url: String
@@ -52,7 +53,7 @@ export const typeDefs = gql`
   }
   input ReserveItemInput {
     itemId: ID!
-    userId: ID!
+    listId: ID!
   }
   input ReleaseItemInput {
     itemId: ID!
@@ -61,6 +62,7 @@ export const typeDefs = gql`
   input ItemListInput {
     name: String!
     identifier: String!
+    owner: ID!
   }
   enum Role {
     USER

@@ -2,13 +2,7 @@ import { ApolloError, AuthenticationError } from 'apollo-server';
 import bcrypt from 'bcrypt';
 import { Service } from 'typedi';
 import { config } from '../config';
-import {
-  CreatePasswordInput,
-  LoginInput,
-  Token,
-  User,
-  UserInput
-} from '../graphql/types';
+import { LoginInput, Token, User, UserInput } from '../graphql/types';
 import { UserRepository } from '../repositories/UserRepository';
 import { BaseService } from './types';
 import { createToken } from './util';
@@ -33,27 +27,16 @@ export class UserService implements BaseService<User> {
   }
 
   async insert(input: UserInput): Promise<User> {
-    const res = await this.userRepository.insert(input);
-    return res.toJSON();
-  }
-
-  async createPassword(input: CreatePasswordInput): Promise<Token> {
-    const {
-      createPasswordInput: { id, password },
-    } = input;
-    const user = await this.userRepository.findById(id);
-    if (!user) {
-      throw new ApolloError(`No user found with id ${id}`);
-    }
-    if (user.password) {
-      throw new ApolloError('User already has password');
-    }
-    if (password.length < 8) {
+    const plainPassword = input.userInput.password;
+    if (plainPassword.length < 8) {
       throw new ApolloError('Password min length is 8 characters');
     }
-    user.password = bcrypt.hashSync(password, config.saltRounds);
-    await user.save();
-    return createToken(user.username, user.toJSON().id, user.role);
+    input.userInput.password = bcrypt.hashSync(
+      plainPassword,
+      config.saltRounds
+    );
+    const res = await this.userRepository.insert(input);
+    return res.toJSON();
   }
 
   async login(input: LoginInput): Promise<Token> {
@@ -64,9 +47,7 @@ export class UserService implements BaseService<User> {
     if (!user) {
       throw new ApolloError(`No user found with username ${username}`);
     }
-    const matches =
-      user.password && bcrypt.compareSync(password, user.password);
-    if (!matches) {
+    if (!bcrypt.compareSync(password, user.password)) {
       throw new AuthenticationError('Password not correct');
     }
     return createToken(user.username, user.toJSON().id, user.role);

@@ -7,7 +7,9 @@ import jwt from 'jsonwebtoken';
 import { config, Environment } from './config';
 import { typeDefs } from './graphql/typedefs';
 import { RequestContext } from './graphql/types';
-import { UserModel } from './models/UserModel';
+import { UserModel } from './models/User';
+import { DateResolver } from './resolvers/dateResolver';
+import { ItemListResolver } from './resolvers/itemListResolver';
 import { ItemResolver } from './resolvers/itemResolver';
 import { UserResolver } from './resolvers/userResolver';
 
@@ -18,7 +20,7 @@ const getServerConfig = (
 ): ApolloServerExpressConfig => {
   return {
     typeDefs,
-    resolvers: [ItemResolver, UserResolver],
+    resolvers: [DateResolver, ItemResolver, UserResolver, ItemListResolver],
     introspection: true,
     playground: true,
     context: async ({ req }): Promise<RequestContext> => {

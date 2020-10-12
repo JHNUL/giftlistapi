@@ -4,7 +4,7 @@ const NODE_ENV = process.env.NODE_ENV || '';
 export enum Environment {
   Prod = 'prod',
   Dev = 'dev',
-  Test = 'test'
+  Test = 'test',
 }
 
 let ENV: Environment = Environment.Prod;

@@ -1,13 +1,11 @@
-import mongoose from 'mongoose';
 import { Service } from 'typedi';
 import { ItemInput } from '../graphql/types';
-import { IItemModel, ItemModel } from '../models/ItemModel';
+import { IItemModel, ItemModel } from '../models/Item';
 
 @Service()
 export class ItemRepository {
   public async findById(id: string): Promise<IItemModel | null> {
-    const objectId = mongoose.Types.ObjectId(id);
-    return await ItemModel.findById(objectId);
+    return await ItemModel.findById(id);
   }
 
   public async findAll(reserved?: boolean): Promise<IItemModel[]> {
@@ -16,7 +14,9 @@ export class ItemRepository {
   }
 
   public async insert(input: ItemInput): Promise<IItemModel> {
-    const newItem = new ItemModel(input.itemInput);
+    // eslint-disable-next-line
+    const { listId, ...rest } = input.itemInput;
+    const newItem = new ItemModel(rest);
     return await newItem.save();
   }
 }

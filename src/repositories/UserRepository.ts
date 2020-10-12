@@ -1,16 +1,14 @@
-import mongoose from 'mongoose';
 import { Service } from 'typedi';
 import { UserInput } from '../graphql/types';
-import { IUserModel, UserModel } from '../models/UserModel';
+import { IUserModel, UserModel } from '../models/User';
 
 @Service()
 export class UserRepository {
   async findById(id: string, populate = true): Promise<IUserModel | null> {
-    const objectId = mongoose.Types.ObjectId(id);
     if (populate) {
-      return await UserModel.findById(objectId).populate('items');
+      return await UserModel.findById(id).populate('items');
     }
-    return await UserModel.findById(objectId);
+    return await UserModel.findById(id);
   }
 
   async findAll(populate = true): Promise<IUserModel[]> {

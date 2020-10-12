@@ -3,6 +3,15 @@ import { mutations } from './mutations';
 import { queries } from './queries';
 
 export const typeDefs = gql`
+  scalar Date
+  type ItemList {
+    id: ID!
+    name: String!
+    identifier: String!
+    items: [Item!]!
+    owner: User!
+    created: Date!
+  }
   type Item {
     id: ID!
     title: String!
@@ -15,8 +24,9 @@ export const typeDefs = gql`
     name: String!
     username: String!
     items: [Item!]!
-    role: Role
-    password: String
+    itemLists: [ItemList!]!
+    role: Role!
+    password: String!
   }
   type Token {
     value: String!
@@ -30,6 +40,7 @@ export const typeDefs = gql`
     password: String!
   }
   input ItemInput {
+    listId: ID!
     title: String!
     description: String
     url: String
@@ -38,14 +49,20 @@ export const typeDefs = gql`
     name: String!
     username: String!
     role: Role!
+    password: String!
   }
   input ReserveItemInput {
     itemId: ID!
-    userId: ID!
+    listId: ID!
   }
   input ReleaseItemInput {
     itemId: ID!
-    userId: ID!
+    listId: ID!
+  }
+  input ItemListInput {
+    name: String!
+    identifier: String!
+    owner: ID!
   }
   enum Role {
     USER

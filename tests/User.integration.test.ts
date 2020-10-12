@@ -6,17 +6,11 @@ import {
 import { GraphQLFormattedError } from 'graphql';
 import getServerConfig from '../src/apollo';
 import { Role, Token } from '../src/graphql/types';
-import { ItemModel } from '../src/models/ItemModel';
-import { UserModel } from '../src/models/UserModel';
+import { ItemModel } from '../src/models/Item';
+import { UserModel } from '../src/models/User';
 import { closeDbConnection, connectToDb } from '../src/mongo';
-import {
-  CREATE_PASSWORD,
-  CREATE_USER,
-  GET_USER,
-  LOGIN,
-  ME,
-} from './util/graphClient';
-import { createUser } from './util/initialisations';
+import { CREATE_USER, GET_USER, LOGIN, ME } from './util/client';
+import { createUser } from './util/seedUtil';
 
 describe('User integration tests', () => {
   beforeAll(async () => {
@@ -38,7 +32,7 @@ describe('User integration tests', () => {
     await UserModel.deleteMany({});
   });
 
-  const testHeaders = { 'from': 'test' }
+  const testHeaders = { from: 'test' };
   const server: ApolloServer = new ApolloServer(getServerConfig(testHeaders));
   const testClient: ApolloServerTestClient = createTestClient(server);
 
@@ -46,36 +40,58 @@ describe('User integration tests', () => {
     const { data } = await testClient.mutate({
       mutation: CREATE_USER,
       variables: {
-        userInput: { name: 'tester', username: 'tester', role: Role.User },
+        userInput: {
+          name: 'tester',
+          username: 'tester',
+          role: Role.User,
+          password: 'foofofoo',
+        },
       },
     });
     // eslint-disable-next-line
-    const { id, ...userWithoutId } = data?.addUser;
-    expect(userWithoutId).toEqual({
+    const { id, password, ...userWithoutIdOrPassword } = data?.addUser;
+    expect(typeof id === 'string').toBeTruthy();
+    expect(typeof password === 'string').toBeTruthy();
+    expect(userWithoutIdOrPassword).toEqual({
       name: 'tester',
       username: 'tester',
       role: 'USER',
       items: [],
-      password: null,
     });
   });
 
+  it('cannot add a new user - password too short', async () => {
+    const res = await testClient.mutate({
+      mutation: CREATE_USER,
+      variables: {
+        userInput: {
+          name: 'tester',
+          username: 'tester',
+          role: Role.User,
+          password: 'foo',
+        },
+      },
+    });
+    // eslint-disable-next-line
+    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
+    expect(errors[0].message).toMatch(/Password min length is 8 characters/);
+  });
+
   it('can find user by id', async () => {
-    await createUser('user1', 'user1', Role.User);
-    const user = await createUser('user2', 'user2', Role.User);
-    await createUser('user3', 'user3', Role.User);
+    await createUser('user1', 'user1', Role.User, '12345678');
+    const user = await createUser('user2', 'user2', Role.User, '12345678');
+    await createUser('user3', 'user3', Role.User, '12345678');
     const { data } = await testClient.query({
       query: GET_USER,
       variables: { id: user.id },
     });
     // eslint-disable-next-line
-    const { id, ...userWithoutId } = data?.user;
-    expect(userWithoutId).toEqual({
+    const { id, password, ...userWithoutIdOrPassword } = data?.user;
+    expect(userWithoutIdOrPassword).toEqual({
       name: 'user2',
       username: 'user2',
       role: 'USER',
       items: [],
-      password: null,
     });
   });
 
@@ -88,21 +104,20 @@ describe('User integration tests', () => {
   });
 
   it('can find user by name', async () => {
-    await createUser('user1', 'user1', Role.User);
-    const user = await createUser('user2', 'user2', Role.User);
-    await createUser('user3', 'user3', Role.User);
+    await createUser('user1', 'user1', Role.User, '12345678');
+    const user = await createUser('user2', 'user2', Role.User, '12345678');
+    await createUser('user3', 'user3', Role.User, '12345678');
     const { data } = await testClient.query({
       query: ME,
       variables: { username: user.username },
     });
     // eslint-disable-next-line
-    const { id, ...userWithoutId } = data?.me;
-    expect(userWithoutId).toEqual({
+    const { id, password, ...userWithoutIdOrPassword } = data?.me;
+    expect(userWithoutIdOrPassword).toEqual({
       name: 'user2',
       username: 'user2',
       role: 'USER',
       items: [],
-      password: null,
     });
   });
 
@@ -115,11 +130,16 @@ describe('User integration tests', () => {
   });
 
   it('cannot create user with existing username', async () => {
-    await createUser('user1', 'user1', Role.User);
+    await createUser('user1', 'user1', Role.User, '12345678');
     const res = await testClient.mutate({
       mutation: CREATE_USER,
       variables: {
-        userInput: { name: 'tester', username: 'user1', role: Role.User },
+        userInput: {
+          name: 'tester',
+          username: 'user1',
+          role: Role.User,
+          password: '12345678',
+        },
       },
     });
     // eslint-disable-next-line
@@ -127,79 +147,22 @@ describe('User integration tests', () => {
     expect(errors[0].message).toMatch(/^.+ duplicate key error .+$/);
   });
 
-  it('can create a password for user', async () => {
-    const user = await createUser('user1', 'user1', Role.User);
-    const { data } = await testClient.mutate({
-      mutation: CREATE_PASSWORD,
-      variables: {
-        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
-      },
-    });
-    const token = data?.createPassword as Token;
-    expect(token.value).toBeDefined();
-    expect(token.value).toMatch(/^Bearer .+$/);
-  });
-
-  it('cannot create a password for user - user not found', async () => {
-    const res = await testClient.mutate({
-      mutation: CREATE_PASSWORD,
-      variables: {
-        createPasswordInput: {
-          id: '5f6e2bf0522a6a1967a78311',
-          password: 'oh_woe_is_me',
-        },
-      },
-    });
-    // eslint-disable-next-line
-    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toMatch(/^No user found with id .+$/);
-  });
-
-  it('cannot create a password for user - user already has password', async () => {
-    const user = await createUser('user1', 'user1', Role.User);
-    await testClient.mutate({
-      mutation: CREATE_PASSWORD,
-      variables: {
-        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
-      },
-    });
-    const res = await testClient.mutate({
-      mutation: CREATE_PASSWORD,
-      variables: {
-        createPasswordInput: {
-          id: user.id,
-          password: 'overwrite_password_attempt',
-        },
-      },
-    });
-    // eslint-disable-next-line
-    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('User already has password');
-  });
-
-  it('cannot create a password for user - below min lenght', async () => {
-    const user = await createUser('user1', 'user1', Role.User);
-    const res = await testClient.mutate({
-      mutation: CREATE_PASSWORD,
-      variables: { createPasswordInput: { id: user.id, password: 'mini' } },
-    });
-    // eslint-disable-next-line
-    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('Password min length is 8 characters');
-  });
-
   it('can login with correct credentials', async () => {
-    const user = await createUser('user1', 'user1', Role.User);
     await testClient.mutate({
-      mutation: CREATE_PASSWORD,
+      mutation: CREATE_USER,
       variables: {
-        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
+        userInput: {
+          name: 'tester',
+          username: 'tester',
+          role: Role.User,
+          password: 'foofofoo',
+        },
       },
     });
     const { data } = await testClient.mutate({
       mutation: LOGIN,
       variables: {
-        loginInput: { username: user.username, password: 'oh_woe_is_me' },
+        loginInput: { username: 'tester', password: 'foofofoo' },
       },
     });
     const token = data?.login as Token;
@@ -223,34 +186,22 @@ describe('User integration tests', () => {
   });
 
   it('cannot login - incorrect password', async () => {
-    const user = await createUser('user1', 'user1', Role.User);
     await testClient.mutate({
-      mutation: CREATE_PASSWORD,
+      mutation: CREATE_USER,
       variables: {
-        createPasswordInput: { id: user.id, password: 'oh_woe_is_me' },
-      },
-    });
-    const res = await testClient.mutate({
-      mutation: LOGIN,
-      variables: {
-        loginInput: {
-          username: user.username,
-          password: 'oops I did it again',
+        userInput: {
+          name: 'tester',
+          username: 'tester',
+          role: Role.User,
+          password: 'foofofoo',
         },
       },
     });
-    // eslint-disable-next-line
-    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('Password not correct');
-  });
-
-  it('cannot login - user does not have a password', async () => {
-    const user = await createUser('user1', 'user1', Role.User);
     const res = await testClient.mutate({
       mutation: LOGIN,
       variables: {
         loginInput: {
-          username: user.username,
+          username: 'tester',
           password: 'oops I did it again',
         },
       },

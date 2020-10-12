@@ -1,18 +1,35 @@
 import { IResolvers } from 'apollo-server';
 
-export type RootType = Item | User;
+export type RootType = undefined;
 
-export interface ItemMutations extends IResolvers {
+export interface ItemListMutations extends IResolvers {
   Mutation: {
-    addItem: (parent: RootType, args: ItemInput) => Promise<Item>;
-    reserveItem: (parent: RootType, args: ReserveItemInput) => Promise<boolean>;
-    releaseItem: (parent: RootType, args: ReleaseItemInput) => Promise<boolean>;
+    addItemList: (
+      parent: RootType,
+      args: ItemListInput,
+      context: RequestContext
+    ) => Promise<ItemList | undefined>;
   };
 }
 
-export interface RequestContext {
-  id?: string;
-  role?: Role;
+export interface ItemMutations extends IResolvers {
+  Mutation: {
+    addItem: (
+      parent: RootType,
+      args: ItemInput,
+      context: RequestContext
+    ) => Promise<Item>;
+    reserveItem: (
+      parent: RootType,
+      args: ReserveItemInput,
+      context: RequestContext
+    ) => Promise<boolean>;
+    releaseItem: (
+      parent: RootType,
+      args: ReleaseItemInput,
+      context: RequestContext
+    ) => Promise<boolean>;
+  };
 }
 
 export interface ItemQueries extends IResolvers {
@@ -38,11 +55,12 @@ export interface UserMutations extends IResolvers {
   Mutation: {
     addUser: (parent: RootType, args: UserInput) => Promise<User | undefined>;
     login: (parent: RootType, args: LoginInput) => Promise<Token>;
-    createPassword: (
-      parent: RootType,
-      args: CreatePasswordInput
-    ) => Promise<Token>;
   };
+}
+
+export interface RequestContext {
+  id?: string;
+  role?: Role;
 }
 
 export type EntityIdArgs = {
@@ -67,7 +85,8 @@ export interface User {
   id: string;
   role: Role;
   items: Array<Item>;
-  password?: string;
+  itemLists: Array<ItemList>;
+  password: string;
 }
 
 export interface UserInput {
@@ -75,6 +94,7 @@ export interface UserInput {
     name: string;
     username: string;
     role: Role;
+    password: string;
   };
 }
 
@@ -93,8 +113,18 @@ export interface Item {
   url?: string;
 }
 
+export interface ItemList {
+  id: string;
+  name: string;
+  identifier: string;
+  items: Array<Item>;
+  created: Date;
+  owner: User;
+}
+
 export interface ItemInput {
   itemInput: {
+    listId: string;
     title: string;
     description?: string;
     url?: string;
@@ -110,15 +140,24 @@ export interface LoginInput {
 
 export interface ReserveItemInput {
   reserveItemInput: {
-    userId: string;
     itemId: string;
+    listId: string;
   };
 }
 
 export interface ReleaseItemInput {
   releaseItemInput: {
-    userId: string;
     itemId: string;
+    listId: string;
+  };
+}
+
+export interface ItemListInput {
+  itemListInput: {
+    name: string;
+    identifier: string;
+    owner: string;
+    created?: Date;
   };
 }
 

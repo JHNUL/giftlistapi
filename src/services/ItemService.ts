@@ -105,25 +105,61 @@ export class ItemService implements BaseService<Item> {
     }
   }
 
-  async releaseItem(input: ReleaseItemInput): Promise<boolean> {
+  async releaseItem(
+    input: ReleaseItemInput,
+    ctx: RequestContext
+  ): Promise<boolean> {
+    const userId = ctx.id as string; // already checked
     const item = await this.itemRepository.findById(
       input.releaseItemInput.itemId
     );
-    const user = await this.userRepository.findById(
-      input.releaseItemInput.userId,
+    const user = await this.userRepository.findById(userId, false);
+    const itemList = await this.itemListRepository.findById(
+      input.releaseItemInput.listId,
       false
     );
-    if (!item || !user) {
-      throw new ApolloError('Item or user does not exist');
+    if (!item) {
+      throw new ApolloError('Item does not exist');
     }
-    if (!user.items?.find((i) => objectIdsAreEqual(i, item._id))) {
-      throw new ApolloError(
-        `User does not have item ${input.releaseItemInput.itemId} reserved`
-      );
+    if (!user) {
+      throw new ApolloError('User does not exist');
+    }
+    if (!itemList) {
+      throw new ApolloError('ItemList does not exist');
+    }
+    const itemIsInList = itemList.items.some(
+      (i) => i.toString() === input.releaseItemInput.itemId
+    );
+    if (!itemIsInList) {
+      throw new ApolloError('Item not found in itemlist');
+    }
+    const userHasAccessToList = user.itemLists.some(
+      (i) => i.toString() === input.releaseItemInput.listId
+    );
+    if (!userHasAccessToList) {
+      throw new ApolloError("User does not have access to item's list");
+    }
+    const userHasReservedItem = user.items?.some(
+      (i) => i.toString() === input.releaseItemInput.itemId
+    );
+    if (!userHasReservedItem) {
+      throw new ApolloError('User has not reserved this item');
     }
     item.reserved = false;
-    user.items = user.items.filter((i) => !objectIdsAreEqual(i, item._id));
-    await Promise.all([item.save(), user.save()]);
-    return true;
+    const itemId = item._id as mongoose.Schema.Types.ObjectId;
+    user.items = user.items.filter((i) => i.toString() !== itemId.toString());
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      await item.save();
+      await user.save();
+      await session.commitTransaction();
+      return true;
+    } catch (error) {
+      await session.abortTransaction();
+      return false;
+    } finally {
+      session.endSession();
+    }
   }
 }

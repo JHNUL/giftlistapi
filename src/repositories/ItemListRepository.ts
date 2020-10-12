@@ -12,9 +12,7 @@ export class ItemListRepository {
     if (!populate) {
       return await ItemListModel.findById(id);
     }
-    return await ItemListModel.findById(id)
-      .populate('owner')
-      .populate('items');
+    return await ItemListModel.findById(id).populate('owner').populate('items');
   }
 
   public async findAll(): Promise<IItemListModel[]> {

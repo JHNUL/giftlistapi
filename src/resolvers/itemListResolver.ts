@@ -12,7 +12,7 @@ const itemListMutations: ItemListMutations = {
         throw new AuthenticationError('User must be authenticated');
       }
       return await itemListService.insert(args, ctx);
-    }
+    },
   },
 };
 

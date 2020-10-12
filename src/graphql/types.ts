@@ -14,9 +14,21 @@ export interface ItemListMutations extends IResolvers {
 
 export interface ItemMutations extends IResolvers {
   Mutation: {
-    addItem: (parent: RootType, args: ItemInput, context: RequestContext) => Promise<Item>;
-    reserveItem: (parent: RootType, args: ReserveItemInput, context: RequestContext) => Promise<boolean>;
-    releaseItem: (parent: RootType, args: ReleaseItemInput, context: RequestContext) => Promise<boolean>;
+    addItem: (
+      parent: RootType,
+      args: ItemInput,
+      context: RequestContext
+    ) => Promise<Item>;
+    reserveItem: (
+      parent: RootType,
+      args: ReserveItemInput,
+      context: RequestContext
+    ) => Promise<boolean>;
+    releaseItem: (
+      parent: RootType,
+      args: ReleaseItemInput,
+      context: RequestContext
+    ) => Promise<boolean>;
   };
 }
 
@@ -135,8 +147,8 @@ export interface ReserveItemInput {
 
 export interface ReleaseItemInput {
   releaseItemInput: {
-    userId: string;
     itemId: string;
+    listId: string;
   };
 }
 

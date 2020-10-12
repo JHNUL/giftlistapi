@@ -16,7 +16,6 @@ export class ItemRepository {
   public async insert(input: ItemInput): Promise<IItemModel> {
     // eslint-disable-next-line
     const { listId, ...rest } = input.itemInput;
-    console.log('ItemRepository.ts: rest >> ', rest)
     const newItem = new ItemModel(rest);
     return await newItem.save();
   }

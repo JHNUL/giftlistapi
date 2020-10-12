@@ -57,7 +57,7 @@ export const typeDefs = gql`
   }
   input ReleaseItemInput {
     itemId: ID!
-    userId: ID!
+    listId: ID!
   }
   input ItemListInput {
     name: String!

@@ -1,9 +1,5 @@
 import { Service } from 'typedi';
-import {
-  ItemList,
-  ItemListInput,
-  RequestContext,
-} from '../graphql/types';
+import { ItemList, ItemListInput, RequestContext } from '../graphql/types';
 import { ItemListRepository } from '../repositories/ItemListRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { BaseService } from './types';
@@ -40,5 +36,4 @@ export class ItemListService implements BaseService<ItemList> {
     await user?.save();
     return itemList?.toJSON();
   }
-
 }

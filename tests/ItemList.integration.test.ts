@@ -3,7 +3,6 @@ import {
   ApolloServerTestClient,
   createTestClient,
 } from 'apollo-server-testing';
-import mongoose from 'mongoose';
 import getServerConfig from '../src/apollo';
 import { Role, User } from '../src/graphql/types';
 import { ItemListModel } from '../src/models/ItemList';
@@ -11,8 +10,8 @@ import { ItemModel } from '../src/models/Item';
 import { UserModel } from '../src/models/User';
 import { closeDbConnection, connectToDb } from '../src/mongo';
 import { createToken } from '../src/services/util';
-import { CREATE_ITEMLIST, ADD_ITEM_TO_LIST } from './util/client';
-import { createItem, createItemList, createUser } from './util/seedUtil';
+import { CREATE_ITEMLIST } from './util/client';
+import { createUser } from './util/seedUtil';
 
 describe('ItemList integration tests', () => {
   let testClient: ApolloServerTestClient;
@@ -74,29 +73,5 @@ describe('ItemList integration tests', () => {
     const user = await UserModel.findById(testUser.id);
     expect(user?.itemLists).toHaveLength(1);
     expect(user?.itemLists[0].toString()).toEqual(id);
-  });
-
-  it.only('Can add an item to itemlist', async () => {
-    const itemList = await createItemList(
-      'testItemList',
-      'hash1234',
-      testUser.id
-    );
-    const item = await createItem(
-      'testItem',
-      false,
-      'testDescription',
-      'testUrl'
-    );
-    const res = await testClient.mutate({
-      mutation: ADD_ITEM_TO_LIST,
-      variables: {
-        itemToListInput: {
-          id: itemList.id,
-          itemId: item.id,
-        },
-      },
-    });
-    console.log('ItemList.integration.test.ts: res >> ', res);
   });
 });

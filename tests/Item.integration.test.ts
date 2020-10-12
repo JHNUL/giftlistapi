@@ -13,7 +13,6 @@ import { closeDbConnection, connectToDb } from '../src/mongo';
 import { createToken } from '../src/services/util';
 import {
   CREATE_ITEM,
-  GET_ITEM,
   GET_ITEMS,
   RELEASE_ITEM,
   RESERVE_ITEM,
@@ -126,15 +125,17 @@ describe('Item integration tests', () => {
 
   it("Can reserve an unreserved item if user is connected to the item's itemList", async () => {
     const item = await createItem('newItem', false);
-    await createItemList('newItemList', 'foooo', testUser.id, [item]);
+    const list = await createItemList('newItemList', 'foooo', testUser.id, [
+      item,
+    ]);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { userId: testUser.id, itemId: item.id } },
+      variables: { reserveItemInput: { listId: list.id, itemId: item.id } },
     });
     expect(data?.reserveItem).toBeTruthy();
   });
 
-  it.only("Cannot reserve an unreserved item if user is not connected to the item's itemList", async () => {
+  it("Cannot reserve an unreserved item if user is not connected to the item's itemList", async () => {
     const newUser = await createUser(
       'newUser',
       'newUsername',
@@ -142,198 +143,226 @@ describe('Item integration tests', () => {
       'zekkrett'
     );
     const item = await createItem('newItem', false);
-    const newItemList = await createItemList('newItemList', 'qwetry1234', newUser.id, [item])
+    const newItemList = await createItemList(
+      'newItemList',
+      'qwetry1234',
+      newUser.id,
+      [item]
+    );
     const res = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { listId: newItemList.id, itemId: item.id } },
+      variables: {
+        reserveItemInput: { listId: newItemList.id, itemId: item.id },
+      },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toMatch(/User does not have access to item's list/);
+    expect(errors[0].message).toMatch(
+      /User does not have access to item's list/
+    );
   });
 
   it('Cannot reserve a reserved item', async () => {
     const item = await createItem('newItem', true);
-    await createItemList('newItemList', 'foooo', testUser.id, [item]);
+    const list = await createItemList('newItemList', 'foooo', testUser.id, [
+      item,
+    ]);
     const res = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { userId: testUser.id, itemId: item.id } },
+      variables: { reserveItemInput: { listId: list.id, itemId: item.id } },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
     expect(errors[0].message).toEqual('Item is already reserved');
   });
 
-  it('cannot reserve item with a non-existing user', async () => {
-    const item = await createItem('item', false, 'dididi', 'url');
-    const res = await testClient.mutate({
+  it('Cannot reserve an unreserved item if user is not authenticated', async () => {
+    const newserver: ApolloServer = new ApolloServer(getServerConfig({}));
+    const newtestClient = createTestClient(newserver);
+    const item = await createItem('newItem', false);
+    const list = await createItemList('newItemList', 'foooo', testUser.id, [
+      item,
+    ]);
+    const res = await newtestClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: {
-        reserveItemInput: {
-          userId: '5f6e2bf0522a6a1967a78311',
-          itemId: item.id,
-        },
-      },
+      variables: { reserveItemInput: { listId: list.id, itemId: item.id } },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('Item or user does not exist');
+    expect(errors[0].message).toMatch(/User must be authenticated/);
   });
 
   it('cannot reserve non-existing item', async () => {
-    const user = await createUser(
-      'tester',
-      'tester',
-      Role.User,
-      'testerer',
-      []
+    const item = await createItem('newItem', false);
+    const newItemList = await createItemList(
+      'newItemList',
+      'qwetry1234',
+      testUser.id,
+      [item]
     );
     const res = await testClient.mutate({
       mutation: RESERVE_ITEM,
       variables: {
         reserveItemInput: {
-          userId: user.id,
+          listId: newItemList.id,
           itemId: '5f6e2bf0522a6a1967a78311',
         },
       },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('Item or user does not exist');
+    expect(errors[0].message).toMatch(/Item does not exist/);
   });
 
-  it('cannot reserve a reserved item', async () => {
-    const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser(
-      'tester',
-      'tester',
-      Role.User,
-      'testerer',
-      []
-    );
-    await testClient.mutate({
-      mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
-    });
-    const res = await testClient.mutate({
-      mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
-    });
-    // eslint-disable-next-line
-    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('Item is already reserved');
-  });
-
-  it('can release a reserved item', async () => {
-    const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser(
-      'tester',
-      'tester',
-      Role.User,
-      'testerer',
-      []
-    );
+  it('Can release a reserved item', async () => {
+    const item = await createItem('newItem', false);
+    const list = await createItemList('newItemList', 'foooo', testUser.id, [
+      item,
+    ]);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
+      variables: { reserveItemInput: { listId: list.id, itemId: item.id } },
     });
-    expect(data?.reserveItem).toBe(true);
+    expect(data?.reserveItem).toBeTruthy();
     const { data: releaseData } = await testClient.mutate({
       mutation: RELEASE_ITEM,
-      variables: { releaseItemInput: { userId: user.id, itemId: item.id } },
+      variables: { releaseItemInput: { listId: list.id, itemId: item.id } },
     });
     expect(releaseData?.releaseItem).toBe(true);
   });
 
-  it('cannot release a reserved item - does not belong to user', async () => {
-    const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser(
-      'tester',
-      'tester',
-      Role.User,
-      'testerer',
-      []
-    );
-    const user2 = await createUser(
-      'tester2',
-      'tester2',
-      Role.User,
-      'testerer2',
-      []
-    );
+  it('Cannot release item that does not exist', async () => {
+    const item = await createItem('newItem', false);
+    const list = await createItemList('newItemList', 'foooo', testUser.id, [
+      item,
+    ]);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
+      variables: { reserveItemInput: { listId: list.id, itemId: item.id } },
     });
-    expect(data?.reserveItem).toBe(true);
-    const res = await testClient.mutate({
-      mutation: RELEASE_ITEM,
-      variables: { releaseItemInput: { userId: user2.id, itemId: item.id } },
-    });
-    // eslint-disable-next-line
-    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toMatch(/^User does not have item .+ reserved$/);
-  });
-
-  it('cannot release a reserved item - item does not exist', async () => {
-    const user = await createUser(
-      'tester',
-      'tester',
-      Role.User,
-      'testerer',
-      []
-    );
+    expect(data?.reserveItem).toBeTruthy();
     const res = await testClient.mutate({
       mutation: RELEASE_ITEM,
       variables: {
         releaseItemInput: {
-          userId: user.id,
+          listId: list.id,
           itemId: '5f6e2bf0522a6a1967a78311',
         },
       },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('Item or user does not exist');
+    expect(errors[0].message).toMatch(/Item does not exist/);
   });
 
-  it('cannot release a reserved item - user does not exist', async () => {
-    const item = await createItem('item', false, 'dididi', 'url');
-    const user = await createUser(
-      'tester',
-      'tester',
-      Role.User,
-      'testerer',
-      []
-    );
+  it('Cannot release item if itemlist does not exist', async () => {
+    const item = await createItem('newItem', false);
+    const list = await createItemList('newItemList', 'foooo', testUser.id, [
+      item,
+    ]);
     const { data } = await testClient.mutate({
       mutation: RESERVE_ITEM,
-      variables: { reserveItemInput: { userId: user.id, itemId: item.id } },
+      variables: { reserveItemInput: { listId: list.id, itemId: item.id } },
     });
-    expect(data?.reserveItem).toBe(true);
+    expect(data?.reserveItem).toBeTruthy();
     const res = await testClient.mutate({
       mutation: RELEASE_ITEM,
       variables: {
         releaseItemInput: {
-          userId: '5f6e2bf0522a6a1967a78311',
+          listId: '5f6e2bf0522a6a1967a78311',
           itemId: item.id,
         },
       },
     });
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
-    expect(errors[0].message).toEqual('Item or user does not exist');
+    expect(errors[0].message).toMatch(/ItemList does not exist/);
   });
 
-  it('can find an item by id', async () => {
-    await createItem('item1', false);
-    const { id } = await createItem('item2', false);
-    await createItem('item3', false);
-    const { data } = await testClient.query({
-      query: GET_ITEM,
-      variables: { id },
+  it('Cannot release item if item not found in itemlist', async () => {
+    const item = await createItem('newItem', true);
+    const list = await createItemList('newItemList', 'foooo', testUser.id);
+    const res = await testClient.mutate({
+      mutation: RELEASE_ITEM,
+      variables: {
+        releaseItemInput: {
+          listId: list.id,
+          itemId: item.id,
+        },
+      },
     });
-    const item = data?.item as Item;
-    expect(item.title).toEqual('item2');
+    // eslint-disable-next-line
+    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
+    expect(errors[0].message).toMatch(/Item not found in itemlist/);
+  });
+
+  it('Cannot release item if user does not have access to itemlist', async () => {
+    const newUser = await createUser(
+      'dsflksdjf',
+      'ladsöfaksdjf',
+      Role.TestUser,
+      'asldkfjlöasdfjk'
+    );
+    const item = await createItem('newItem', true);
+    const list = await createItemList('newItemList', 'foooo', newUser.id, [
+      item,
+    ]);
+    const res = await testClient.mutate({
+      mutation: RELEASE_ITEM,
+      variables: {
+        releaseItemInput: {
+          listId: list.id,
+          itemId: item.id,
+        },
+      },
+    });
+    // eslint-disable-next-line
+    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
+    expect(errors[0].message).toMatch(
+      /User does not have access to item's list/
+    );
+  });
+
+  it('Cannot release item if item has not been reserved by user', async () => {
+    // testUser adds item to the list
+    const { data: itemData } = await testClient.mutate({
+      mutation: CREATE_ITEM,
+      variables: {
+        itemInput: {
+          title: 'foo',
+          description: 'fooer',
+          url: 'bar',
+          listId: itemList.id,
+        },
+      },
+    });
+    expect(itemData?.addItem).toBeTruthy();
+    // create new user
+    const newUser = await createUser(
+      'bilbo',
+      'bagginses',
+      Role.TestUser,
+      'asldkfjlöasdfjk',
+      [],
+      [itemList]
+    );
+    const newToken = createToken('bagginses', newUser.id, newUser.role);
+    const newTestHeaders = { authorization: `${newToken.value}` };
+    const newServer: ApolloServer = new ApolloServer(
+      getServerConfig(newTestHeaders)
+    );
+    const newTestClient = createTestClient(newServer);
+    const res = await newTestClient.mutate({
+      mutation: RELEASE_ITEM,
+      variables: {
+        releaseItemInput: {
+          listId: itemList.id,
+          itemId: itemData?.addItem.id, // eslint-disable-line
+        },
+      },
+    });
+    // eslint-disable-next-line
+    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
+    expect(errors[0].message).toMatch(/User has not reserved this item/);
   });
 });

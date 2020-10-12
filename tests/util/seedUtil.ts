@@ -11,7 +11,8 @@ export const createUser = async (
   username: string,
   role: Role,
   password: string,
-  items?: Array<Item>
+  items?: Array<Item>,
+  itemLists?: Array<ItemList>
 ): Promise<User> => {
   const hash = bcrypt.hashSync(password, config.saltRounds);
   const testUser = new UserModel({
@@ -20,6 +21,7 @@ export const createUser = async (
     password: hash,
     role,
     items,
+    itemLists,
   });
   const savedUser = await testUser.save();
   return savedUser.toJSON();
@@ -52,7 +54,7 @@ export const createItemList = async (
     identifier,
     owner: mongoose.Types.ObjectId(owner),
     created: new Date(),
-    items: items?.length ? items.map(i => mongoose.Types.ObjectId(i.id)) : []
+    items: items?.length ? items.map((i) => mongoose.Types.ObjectId(i.id)) : [],
   });
   const user = await UserModel.findById(owner);
   const savedItemList = await testItemList.save();

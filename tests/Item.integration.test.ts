@@ -14,7 +14,9 @@ import { createToken } from '../src/services/util';
 import {
   CREATE_ITEM,
   GET_ITEMS,
+  GET_ITEM,
   RELEASE_ITEM,
+  REMOVE_ITEM,
   RESERVE_ITEM,
 } from './util/client';
 import { createItem, createItemList, createUser } from './util/seedUtil';
@@ -121,6 +123,84 @@ describe('Item integration tests', () => {
     // eslint-disable-next-line
     const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
     expect(errors[0].message).toMatch(/Only owner can add item to list/);
+  });
+
+  it('Can delete an item with a targeted itemlist', async () => {
+    const item = await createItem('myItem', false, 'some description');
+    const itemList = await createItemList(
+      'myItemList',
+      'hash1234',
+      testUser.id,
+      [item]
+    );
+    const { data } = await testClient.mutate({
+      mutation: REMOVE_ITEM,
+      variables: { removeItemInput: { listId: itemList.id, itemId: item.id } },
+    });
+    expect(data?.removeItem).toBeTruthy();
+    const { data: itemData } = await testClient.query({
+      query: GET_ITEM,
+      variables: { id: item.id }
+    })
+    expect(itemData?.item).toBeNull()
+  });
+
+  it('Cannot delete an item if it does not belong to the itemlist', async () => {
+    const item = await createItem('myItem', false, 'some description');
+    await createItemList('myItemList', 'hash1234', testUser.id, [item]);
+    const itemList2 = await createItemList(
+      'myItemList2',
+      'hash12346',
+      testUser.id,
+      []
+    );
+    const res = await testClient.mutate({
+      mutation: REMOVE_ITEM,
+      variables: { removeItemInput: { listId: itemList2.id, itemId: item.id } },
+    });
+    // eslint-disable-next-line
+    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
+    expect(errors[0].message).toMatch(/Item not found in itemlist/);
+  });
+
+  it('Cannot delete an item if itemlist not found', async () => {
+    const item = await createItem('myItem', false, 'some description');
+    await createItemList('myItemList', 'hash1234', testUser.id, [item]);
+    const res = await testClient.mutate({
+      mutation: REMOVE_ITEM,
+      variables: {
+        removeItemInput: {
+          listId: '5f6e2bf0522a6a1967a78311',
+          itemId: item.id,
+        },
+      },
+    });
+    // eslint-disable-next-line
+    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
+    expect(errors[0].message).toMatch(/Itemlist not found/);
+  });
+
+  it('Cannot delete an item if itemlist does not belong to the user', async () => {
+    const newUser = await createUser(
+      'newUser',
+      'newUsername',
+      Role.TestUser,
+      'zekkrett'
+    );
+    const item = await createItem('myItem', false, 'some description');
+    const itemList = await createItemList(
+      'myItemList',
+      'hash1234',
+      newUser.id,
+      [item]
+    );
+    const res = await testClient.mutate({
+      mutation: REMOVE_ITEM,
+      variables: { removeItemInput: { listId: itemList.id, itemId: item.id } },
+    });
+    // eslint-disable-next-line
+    const errors = res.errors as GraphQLFormattedError<Record<string, any>>[];
+    expect(errors[0].message).toMatch(/Only list owner can remove an item/);
   });
 
   it("Can reserve an unreserved item if user is connected to the item's itemList", async () => {

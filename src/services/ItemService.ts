@@ -5,6 +5,7 @@ import {
   Item,
   ItemInput,
   ReleaseItemInput,
+  RemoveItemInput,
   RequestContext,
   ReserveItemInput,
 } from '../graphql/types';
@@ -12,7 +13,6 @@ import { ItemListRepository } from '../repositories/ItemListRepository';
 import { ItemRepository } from '../repositories/ItemRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { BaseService } from './types';
-import { objectIdsAreEqual } from './util';
 
 @Service()
 export class ItemService implements BaseService<Item> {
@@ -48,6 +48,42 @@ export class ItemService implements BaseService<Item> {
     itemList.items.push(res._id);
     await itemList.save();
     return res.toJSON();
+  }
+
+  async delete(input: RemoveItemInput, ctx: RequestContext): Promise<boolean> {
+    const userId = ctx.id as string; // already checked
+    const {
+      removeItemInput: { listId, itemId },
+    } = input;
+
+    const item = await this.itemRepository.findById(itemId);
+    if (!item) return true;
+
+    const itemList = await this.itemListRepository.findById(listId, false);
+    if (!itemList) {
+      throw new ApolloError('Itemlist not found');
+    }
+    if (userId !== itemList.owner.toString()) {
+      throw new AuthenticationError('Only list owner can remove an item');
+    }
+    const itemIsInList = itemList.items.some((i) => i.toString() === itemId);
+    if (!itemIsInList) {
+      throw new ApolloError('Item not found in itemlist');
+    }
+    itemList.items = itemList.items.filter((oid) => oid.toString() !== itemId);
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      await itemList.save();
+      await this.itemRepository.delete(itemId);
+      await session.commitTransaction();
+      return true;
+    } catch (error) {
+      await session.abortTransaction();
+      return false;
+    } finally {
+      session.endSession();
+    }
   }
 
   async reserveItem(

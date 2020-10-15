@@ -45,6 +45,9 @@ export const typeDefs = gql`
     description: String
     url: String
   }
+  input RemoveItemListInput {
+    listId: ID!
+  }
   input UserInput {
     name: String!
     username: String!
@@ -56,6 +59,10 @@ export const typeDefs = gql`
     listId: ID!
   }
   input ReleaseItemInput {
+    itemId: ID!
+    listId: ID!
+  }
+  input RemoveItemInput {
     itemId: ID!
     listId: ID!
   }

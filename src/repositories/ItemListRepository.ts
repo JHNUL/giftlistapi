@@ -26,4 +26,9 @@ export class ItemListRepository {
     });
     return await newItemList.save();
   }
+
+  public async delete(id: string): Promise<boolean> {
+    const res = await ItemListModel.findByIdAndDelete(id);
+    return res !== null;
+  }
 }

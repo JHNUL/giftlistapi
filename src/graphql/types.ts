@@ -9,6 +9,11 @@ export interface ItemListMutations extends IResolvers {
       args: ItemListInput,
       context: RequestContext
     ) => Promise<ItemList | undefined>;
+    removeItemList: (
+      parent: RootType,
+      args: RemoveItemListInput,
+      context: RequestContext
+    ) => Promise<boolean>;
   };
 }
 
@@ -29,6 +34,11 @@ export interface ItemMutations extends IResolvers {
       args: ReleaseItemInput,
       context: RequestContext
     ) => Promise<boolean>;
+    removeItem: (
+      parent: RootType,
+      args: RemoveItemInput,
+      context: RequestContext
+    ) => Promise<boolean>;
   };
 }
 
@@ -40,6 +50,16 @@ export interface ItemQueries extends IResolvers {
       args: AllItemArgs,
       context: RequestContext
     ) => Promise<Item[]>;
+  };
+}
+
+export interface ItemListQueries extends IResolvers {
+  Query: {
+    itemList: (
+      parent: RootType,
+      args: EntityIdArgs,
+      context: RequestContext
+    ) => Promise<ItemList | undefined>;
   };
 }
 
@@ -152,12 +172,25 @@ export interface ReleaseItemInput {
   };
 }
 
+export interface RemoveItemInput {
+  removeItemInput: {
+    itemId: string;
+    listId: string;
+  };
+}
+
 export interface ItemListInput {
   itemListInput: {
     name: string;
     identifier: string;
     owner: string;
     created?: Date;
+  };
+}
+
+export interface RemoveItemListInput {
+  removeItemListInput: {
+    listId: string;
   };
 }
 

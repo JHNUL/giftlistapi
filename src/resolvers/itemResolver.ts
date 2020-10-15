@@ -8,6 +8,7 @@ import {
   ItemMutations,
   ItemQueries,
   ReleaseItemInput,
+  RemoveItemInput,
   RequestContext,
   ReserveItemInput,
 } from '../graphql/types';
@@ -54,6 +55,16 @@ const itemMutations: ItemMutations = {
       ctx: RequestContext
     ): Promise<boolean> => {
       return await itemService.releaseItem(args, ctx);
+    },
+    removeItem: async (
+      _root,
+      args: RemoveItemInput,
+      ctx: RequestContext
+    ): Promise<boolean> => {
+      if (!ctx.id || !ctx.role) {
+        throw new AuthenticationError('User must be authenticated');
+      }
+      return await itemService.delete(args, ctx);
     },
   },
 };

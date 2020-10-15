@@ -12,6 +12,12 @@ export const CREATE_ITEM = gql`
   }
 `;
 
+export const REMOVE_ITEM = gql`
+  mutation RemoveItem($removeItemInput: RemoveItemInput!) {
+    removeItem(removeItemInput: $removeItemInput)
+  }
+`;
+
 export const CREATE_USER = gql`
   mutation AddUser($userInput: UserInput!) {
     addUser(userInput: $userInput) {
@@ -41,6 +47,27 @@ export const CREATE_ITEMLIST = gql`
         id
         name
         username
+      }
+    }
+  }
+`;
+
+export const REMOVE_ITEMLIST = gql`
+  mutation RemoveItemList($removeItemListInput: RemoveItemListInput!) {
+    removeItemList(removeItemListInput: $removeItemListInput)
+  }
+`;
+
+export const GET_ITEMLIST = gql`
+  query ItemList($id: ID!) {
+    itemList(id: $id) {
+      id
+      name
+      owner {
+        name
+      }
+      items {
+        title
       }
     }
   }
